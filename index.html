@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The House - Narrative Sandbox v0.1</title>
+    <link rel="stylesheet" href="/src/css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- 追記：ソース選択画面（初期状態） -->
+    <div id="source-selector" class="inspection-overlay">
+        <div class="panel" style="max-width: 400px; text-align: center;">
+            <h2>The House: Previewer</h2>
+            <p class="small">コンテンツの読み込み元を選択してください</p>
+
+            <button onclick="window.loadLocalFolder()" class="choices button"
+                style="width:100%; margin-bottom:12px; padding:16px;">
+                📂 ローカルフォルダを開く
+            </button>
+
+            <hr style="border:0; border-top:1px solid #333; margin:16px 0;">
+
+            <input type="text" id="github-url" placeholder="user/repo"
+                style="width:100%; background:#000; color:#fff; border:1px solid #444; padding:8px; margin-bottom:8px;">
+            <button onclick="window.loadRemoteRepo()" class="system-btn" style="padding:10px;">
+                🌐 GitHubから読み込む
+            </button>
+            <button onclick="window.loadRemoteRepo('IVIX2020/the-house-content')" class="system-btn"
+                style="padding:10px; margin-top:8px; border-color:#4a9eff; color:#4a9eff;">
+                ✨ デモを読み込む (The House)
+            </button>
+        </div>
+    </div>
+
+    <div id="app" class="app hidden">
+        <!-- 画像表示エリア -->
+        <div id="image-pane" class="image-pane">
+            <!-- インスペクション・オーバーレイ（画像エリア内に配置） -->
+            <div id="inspection-overlay" class="inspection-overlay hidden">
+                <div class="overlay-content">
+                    <img id="inspection-image" src="" alt="inspection">
+                    <button id="close-overlay" class="close-overlay">×</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- サイドバー：ステータス表示 -->
+        <aside class="sidebar">
+            <section class="panel">
+                <h3>Objects</h3>
+                <div id="object-list">
+                    <!-- JSで動的に生成 -->
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>Memories</h3>
+                <div id="memory-list">
+                    <!-- JSで動的に生成 -->
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>Audio</h3>
+                <div id="audio-status" class="small" style="color:#f0a000; margin-bottom:8px;">状態: 未初期化 (クリックして開始)</div>
+                <div class="small">BGM: <input type="range" min="0" max="1" step="0.1" value="0.15"
+                        onchange="window.setVolume('bgm', this.value)"></div>
+                <div class="small">SE: <input type="range" min="0" max="1" step="0.1" value="1.0"
+                        onchange="window.setVolume('se', this.value)"></div>
+            </section>
+
+            <section class="panel">
+                <h3>System</h3>
+                <div class="system-grid">
+                    <button onclick="window.exportSave()" class="system-btn" title="セーブ"><i
+                            data-lucide="save"></i></button>
+                    <button onclick="document.getElementById('save-upload').click()" class="system-btn" title="ロード"><i
+                            data-lucide="upload"></i></button>
+                    <button onclick="window.showMap()" class="system-btn" title="マップ表示"><i
+                            data-lucide="map"></i></button>
+                    <button onclick="window.returnToLoader()" class="system-btn" title="ソース選択に戻る"><i
+                            data-lucide="log-out"></i></button>
+                    <button onclick="window.gameReset()" class="system-btn reset" title="初期化"><i
+                            data-lucide="refresh-cw"></i></button>
+                </div>
+                <input type="file" id="save-upload" style="display:none" accept=".json">
+                <div id="save-status" class="small" style="margin-top:8px;">進捗は自動保存されています</div>
+            </section>
+
+            <footer class="panel small">
+                The House: Narrative Sandbox v0.1
+            </footer>
+        </aside>
+
+        <!-- メインテキスト表示エリア -->
+        <main class="text-pane">
+            <h2 id="scene-title">読み込み中...</h2>
+            <div id="scene-text"></div>
+            <div id="choices" class="choices">
+                <!-- JSで動的に生成 -->
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="/src/js/main.js"></script>
+</body>
+
+</html>

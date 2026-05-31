@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Narrative Sandbox v0.1</title>
+<style>
+body{
+    margin:0;
+    background:#0c0c0c;
+    color:#f5f5f5;
+    font-family: "Noto Serif JP", serif;
+}
+.app{
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: 60vh 40vh;
+    height:100vh;
+}
+.image-pane{
+    background-image:url("https://picsum.photos/1200/800?grayscale");
+    background-size:cover;
+    background-position:center;
+    border-right:1px solid #333;
+}
+.sidebar{
+    background:#111;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:12px;
+}
+.panel{
+    border:1px solid #333;
+    padding:12px;
+    background:#161616;
+}
+.panel h3{
+    margin-top:0;
+}
+.text-pane{
+    grid-column:1;
+    background:#101010;
+    border-top:1px solid #333;
+    padding:24px;
+    overflow:auto;
+}
+.choices button{
+    width:100%;
+    text-align:left;
+    margin-top:8px;
+    padding:12px;
+    background:#1a1a1a;
+    color:white;
+    border:1px solid #444;
+    cursor:pointer;
+}
+.choices button:hover{
+    background:#242424;
+}
+.small{
+    opacity:0.7;
+    font-size:0.9em;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<div class="image-pane"></div>
+
+<div class="sidebar">
+    <div class="panel">
+        <h3>Objects</h3>
+        <div>☑ 仏壇</div>
+        <div>☑ 障子</div>
+        <div>☐ テレビ</div>
+        <div>☐ 写真立て</div>
+        <div>☐ ?????</div>
+    </div>
+
+    <div class="panel">
+        <h3>Memories</h3>
+        <div>☑ 線香の匂い</div>
+        <div>☑ 雨の日の居間</div>
+        <div>☐ ?????</div>
+        <div>☐ ?????</div>
+    </div>
+
+    <div class="panel small">
+        Narrative Sandbox v0.1
+    </div>
+</div>
+
+<div class="text-pane">
+    <h2 id="title">祖父の家の居間</h2>
+    <p id="text">
+        雨はまだ降り続いている。湿った畳の匂いと、古い木の香りが混ざっている。
+    </p>
+
+    <div class="choices">
+        <button onclick="showScene('butsudan')">仏壇を見る</button>
+        <button onclick="showScene('shoji')">障子を見る</button>
+        <button onclick="showScene('tv')">テレビを見る</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+const scenes = {
+    butsudan:{
+        title:"仏壇",
+        text:"線香の香りが残っている。不思議と懐かしい。"
+    },
+    shoji:{
+        title:"障子",
+        text:"雨に濡れた庭が見える。輪郭はまだ曖昧だ。"
+    },
+    tv:{
+        title:"テレビ",
+        text:"古いブラウン管テレビ。万博中継の記憶がよぎる。"
+    }
+};
+
+function showScene(id){
+    document.getElementById("title").textContent = scenes[id].title;
+    document.getElementById("text").textContent = scenes[id].text;
+}
+</script>
+
+</body>
+</html>
