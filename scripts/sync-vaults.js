@@ -226,6 +226,24 @@ function generateObsidianCanvas(vaultName, vaultPath, mdFiles) {
     fs.writeFileSync(canvasPath, JSON.stringify(canvasData, null, 2), 'utf-8');
 }
 
+function copyDirRecursive(src, dest) {
+    if (!fs.existsSync(src)) return;
+    if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+    }
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    for (const entry of entries) {
+        if (entry.name.startsWith('.')) continue;
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        if (entry.isDirectory()) {
+            copyDirRecursive(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+
 export function syncVaults() {
     if (!fs.existsSync(vaultsDir)) {
         console.warn(`Vaults dir missing: ${vaultsDir}`);
@@ -260,6 +278,11 @@ export function syncVaults() {
     });
 
     fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2), 'utf-8');
+
+    // コピー: public/vaults/ に同期して vite build (dist/) や静的サーバーで動作するようにする
+    const publicVaultsDir = path.join(rootDir, 'public', 'vaults');
+    copyDirRecursive(vaultsDir, publicVaultsDir);
 }
 
 syncVaults();
+
