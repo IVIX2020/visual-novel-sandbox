@@ -1,0 +1,47 @@
+{
+  "settings_version": "0.23.0",
+  "shell_commands": [
+    {
+      "id": "sc-sync-canvas-map",
+      "alias": "✨ キャンバスマップ整列 (MD -> Canvas)",
+      "platform_specific_commands": {
+        "default": "PATH=$PATH:/usr/local/bin:/opt/homebrew/bin npm run sync-vaults"
+      },
+      "icon": "map",
+      "working_directory": {
+        "path": "/Users/ivix/Library/Mobile Documents/com~apple~CloudDocs/2026/creative/coding/visual-novel-sandbox",
+        "type": "absolute"
+      },
+      "events": [],
+      "preactions": [],
+      "postactions": [
+        {
+          "id": "postaction-1",
+          "action": "obsidian_notification",
+          "message": "🗺️ キャンバスマップをきれいに最新整列しました！"
+        }
+      ]
+    },
+    {
+      "id": "sc-sync-canvas-to-md",
+      "alias": "🔄 キャンバスからMD構築 (Canvas -> MD)",
+      "platform_specific_commands": {
+        "default": "PATH=$PATH:/usr/local/bin:/opt/homebrew/bin npm run sync-canvas"
+      },
+      "icon": "file-plus",
+      "working_directory": {
+        "path": "/Users/ivix/Library/Mobile Documents/com~apple~CloudDocs/2026/creative/coding/visual-novel-sandbox",
+        "type": "absolute"
+      },
+      "events": [],
+      "preactions": [],
+      "postactions": [
+        {
+          "id": "postaction-2",
+          "action": "obsidian_notification",
+          "message": "📄 キャンバスのカードからMDファイルと選択肢を同期構築しました！"
+        }
+      ]
+    }
+  ]
+}

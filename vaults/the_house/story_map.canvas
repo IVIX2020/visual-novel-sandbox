@@ -1,0 +1,75 @@
+{
+  "nodes": [
+    {
+      "id": "entrance",
+      "type": "text",
+      "text": "### 📄 [[entrance.md|玄関]]\n`entrance.md`\n\n雨の音が静かに格子戸を打っている。\n引き戸を開けると、湿った木の匂いと古い土間の冷気が漂ってきた。\n\n@ memory:shoes\n土間に残...",
+      "x": 0,
+      "y": 0,
+      "width": 340,
+      "height": 220,
+      "color": "1"
+    },
+    {
+      "id": "entrance#[[living|居間へ入る]]",
+      "type": "text",
+      "text": "#### 🔖 ## [[living|居間へ入る]]\n\n",
+      "x": 0,
+      "y": 280,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "garden",
+      "type": "text",
+      "text": "### 📄 [[garden.md|庭]]\n`garden.md`\n\n雨に濡れた苔と青々とした木々が広がる日本庭園。\n雨粒が葉を叩く音が心地よく響いている。",
+      "x": 0,
+      "y": 500,
+      "width": 340,
+      "height": 220,
+      "color": "1"
+    },
+    {
+      "id": "garden#[[living|居間に戻る]]",
+      "type": "text",
+      "text": "#### 🔖 ## [[living|居間に戻る]]\n\n",
+      "x": 0,
+      "y": 780,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "living",
+      "type": "text",
+      "text": "### 📄 [[living.md|居間]]\n`living.md`\n\n広々とした和室。薄暗い部屋の奥には立派な仏壇が鎮座している。\n畳からはかすかに線香の香りが残っている。",
+      "x": 0,
+      "y": 1000,
+      "width": 340,
+      "height": 220,
+      "color": "1"
+    },
+    {
+      "id": "living#[[entrance|玄関に戻る]]",
+      "type": "text",
+      "text": "#### 🔖 ## [[entrance|玄関に戻る]]\n\n",
+      "x": 0,
+      "y": 1280,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "living#[[garden|庭を眺める]]",
+      "type": "text",
+      "text": "#### 🔖 ## [[garden|庭を眺める]]\n\n",
+      "x": 0,
+      "y": 1500,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    }
+  ],
+  "edges": []
+}

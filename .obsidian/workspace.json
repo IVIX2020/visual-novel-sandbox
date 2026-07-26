@@ -1,0 +1,236 @@
+{
+  "main": {
+    "id": "922942885c7740c4",
+    "type": "split",
+    "children": [
+      {
+        "id": "0eed209ac8687c58",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a9d0f5dae3f521bb",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "vaults/test/story_map.canvas",
+                "viewState": {
+                  "x": 1980,
+                  "y": 370,
+                  "zoom": -2.1400147429059846
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "story_map"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b82e058e3239b6f9",
+    "type": "split",
+    "children": [
+      {
+        "id": "f8447bdbaed1bf34",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cb5d753f1dcc0156",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "23f2ed4c7d2f851b",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "1eef543f11783cb4",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "da1f6f0ca6581034",
+    "type": "split",
+    "children": [
+      {
+        "id": "ce397571fe71aba9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8c9417ebdd8311d4",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "vaults/桃太郎/story_map.canvas",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for story_map"
+            }
+          },
+          {
+            "id": "08d3bf6d1ef4ae52",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "vaults/桃太郎/story_map.canvas",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from story_map"
+            }
+          },
+          {
+            "id": "ef4ca2427d4d9738",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "94e1160651f0f895",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "3f95969e9cdd6156",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "vaults/test/story_map.canvas",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of story_map"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "obsidian-shellcommands:Shell commands: Custom variables": false
+    }
+  },
+  "active": "a9d0f5dae3f521bb",
+  "lastOpenFiles": [
+    "vaults/test/master.md",
+    "vaults/test/魔導師の塔.md",
+    "vaults/test/タイムスリップエンド.md",
+    "vaults/test/伝説の英雄エンド.md",
+    "vaults/test/拷問部屋.md",
+    "vaults/test/大脱出.md",
+    "vaults/test/廊下.md",
+    "vaults/test/脱出ゲームの始まり.md",
+    "vaults/test/story_map.canvas",
+    "dist/assets/index-CsyUYLqd.js",
+    "dist/assets/index-BGOj8mn8.js",
+    "dist/assets/index-O5OSC_KN.js",
+    "vaults/桃太郎/川で.md",
+    "vaults/桃太郎/master.md",
+    "vaults/test/start.md",
+    "vaults/test/corridor.md",
+    "vaults/test/basement_lab.md",
+    "vaults/test/escape_ending.md",
+    "vaults/test/gameover.md",
+    "corridor.md",
+    "vaults/test/次の場面その２.md",
+    "vaults/test/浦島太郎現る.md",
+    "vaults/test/次の場面.md",
+    "vaults/test/files.json",
+    "vaults/test/ここが始まり.md",
+    "vaults/桃太郎/story_map.canvas",
+    "vaults/test/Untitled",
+    "vaults/test",
+    "vaults/桃太郎/おじいさんは.md",
+    "scripts/deploy-shell-commands.js",
+    "vaults/桃太郎/Screenshot 2026-07-26 at 13.12.11.png",
+    "vaults/桃太郎/Screenshot 2026-07-26 at 13.10.13.png",
+    "vaults/桃太郎/レスぺ購入！.md",
+    "vaults/桃太郎/ステーキを焼くぜ.md",
+    "vaults/桃太郎/onigashima.md",
+    "vaults/桃太郎/340f96023d3b5e93.md",
+    "scripts/sync-canvas-to-md.js",
+    "vaults/the_seaside_cafe/story_map.canvas",
+    "vaults/the_morning_seaside_cafe/story_map.canvas",
+    "vaults/the_house/story_map.canvas",
+    "vaults/cyber_tokyo/story_map.canvas",
+    "dist/assets/index-awMzXYD8.js",
+    "vaults/manifest.json"
+  ]
+}

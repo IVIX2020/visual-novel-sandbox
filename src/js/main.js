@@ -7,18 +7,47 @@ import { DataLoader, LocalDriver, HttpDriver } from './data-loader.js';
 
 let engine = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // 起動時にアイコンを初期化（ソース選択画面など）
     if (window.lucide) window.lucide.createIcons();
 
-    // 初期状態ではエンジンは作らない（ソース選択を待つ）
+    // Vault一覧マニフェストを読み込んで動的にドロップダウン生成
+    await initVaultSelector();
 
-    // 1. ローカルフォルダを選択して読み込む
+    // 1. プロジェクト内 Vault プリセットの読み込み
+    window.loadPresetVault = async (targetVault = null) => {
+        const selectEl = document.getElementById('preset-vault-select');
+        const vault = targetVault || (selectEl ? selectEl.value : 'the_house');
+        if (!vault) return alert("Vaultが選択されていません");
+
+        const baseUrl = `./vaults/${vault}/`;
+        const driver = new HttpDriver(baseUrl);
+        const loader = new DataLoader(driver, state);
+        try {
+            state.reset(); // シナリオ切り替え時はステートリセット
+            engine = new Engine(loader);
+            await engine.init();
+            setupAudioUnlock();
+        } catch (e) {
+            console.error("Preset vault load failed", e);
+            alert(`Vaultの読み込みに失敗しました (${vault}): ${e.message}`);
+        }
+
+        if (!targetVault) {
+            const url = new URL(window.location);
+            url.searchParams.set('vault', vault);
+            url.searchParams.delete('repo');
+            window.history.pushState({}, '', url);
+        }
+    };
+
+    // 2. ローカルフォルダを選択して読み込む (File System Access API)
     window.loadLocalFolder = async () => {
         try {
             const directoryHandle = await window.showDirectoryPicker();
             const driver = new LocalDriver(directoryHandle);
             const loader = new DataLoader(driver, state);
+            state.reset();
             engine = new Engine(loader);
             await engine.init();
             setupAudioUnlock();
@@ -28,46 +57,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 2. GitHub (またはHTTP) から読み込む
+    // 3. GitHub (またはHTTP) から読み込む
     window.loadRemoteRepo = async (targetRepo = null) => {
         let repo = targetRepo || document.getElementById('github-url').value.trim();
         if (!repo) return alert("ユーザー名/リポジトリ名を入力してください");
 
-        // URL形式 (https://github.com/user/repo...) の場合は抽出する
         if (repo.startsWith('http')) {
             const url = new URL(repo);
             const paths = url.pathname.split('/').filter(p => p);
             if (paths.length >= 2) {
-                // .git を除去
                 repo = `${paths[0]}/${paths[1].replace('.git', '')}`;
             }
         }
 
-        // raw.githubusercontent.com 形式に変換
         const baseUrl = `https://raw.githubusercontent.com/${repo}/main/`;
         const driver = new HttpDriver(baseUrl);
         const loader = new DataLoader(driver, state);
         try {
+            state.reset();
             engine = new Engine(loader);
             await engine.init();
             setupAudioUnlock();
         } catch (e) {
             console.error("Remote load failed", e);
-            alert(`読み込みに失敗しました。\n・リポジトリ名: ${repo}\n・公開設定が「Public」であることを確認してください。\n\nエラー詳細: ${e.message}`);
+            alert(`読み込みに失敗しました。\n・リポジトリ名: ${repo}\n\nエラー詳細: ${e.message}`);
         }
 
-        // URLパラメータの更新（リロードしても維持できるように）
         if (!targetRepo) {
             const url = new URL(window.location);
             url.searchParams.set('repo', repo);
+            url.searchParams.delete('vault');
             window.history.pushState({}, '', url);
         }
     };
 
-    // 3. 自動読み込み（URLパラメータがある場合）
+    // 4. 自動読み込み（URLパラメータがある場合）
     const params = new URLSearchParams(window.location.search);
+    const initialVault = params.get('vault');
     const initialRepo = params.get('repo');
-    if (initialRepo) {
+    
+    if (initialVault) {
+        window.loadPresetVault(initialVault);
+    } else if (initialRepo) {
         window.loadRemoteRepo(initialRepo);
     }
 
@@ -84,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.gameReset = () => {
         if (confirm('すべての進捗をリセットして最初から始めますか？')) {
             state.reset();
-            // 初期シーン（entrance）に強制的に戻して再描画
             if (engine) engine.render('entrance');
         }
     };
@@ -98,9 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
             app.classList.add('hidden');
             selector.classList.remove('hidden');
 
-            // URLパラメータをクリア
             const url = new URL(window.location);
             url.searchParams.delete('repo');
+            url.searchParams.delete('vault');
             window.history.pushState({}, '', url);
 
             if (window.lucide) window.lucide.createIcons();
@@ -131,3 +161,32 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+async function initVaultSelector() {
+    const selectEl = document.getElementById('preset-vault-select');
+    if (!selectEl) return;
+
+    try {
+        const res = await fetch('./vaults/manifest.json');
+        if (res.ok) {
+            const vaults = await res.json();
+            selectEl.innerHTML = '';
+            vaults.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.textContent = v.name;
+                selectEl.appendChild(opt);
+            });
+            return;
+        }
+    } catch (e) {
+        console.warn("Failed to load vault manifest", e);
+    }
+
+    // フォールバック
+    selectEl.innerHTML = `
+        <option value="the_house">🏠 The House [祖父の記憶と家]</option>
+        <option value="cyber_tokyo">🌆 Cyber Tokyo 2099 [電脳街の路地裏]</option>
+        <option value="the_morning_cafe">☕ The Morning Cafe [朝のカフェ]</option>
+    `;
+}

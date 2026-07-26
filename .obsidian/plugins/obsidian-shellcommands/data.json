@@ -1,0 +1,130 @@
+{
+  "settings_version": "0.23.0",
+  "debug": false,
+  "obsidian_command_palette_prefix": "Execute: ",
+  "preview_variables_in_command_palette": true,
+  "show_autocomplete_menu": true,
+  "working_directory": "",
+  "default_shells": {},
+  "environment_variable_path_augmentations": {},
+  "show_installation_warnings": true,
+  "error_message_duration": 20,
+  "notification_message_duration": 10,
+  "execution_notification_mode": "disabled",
+  "output_channel_clipboard_also_outputs_to_notification": true,
+  "output_channel_notification_decorates_output": true,
+  "enable_events": true,
+  "approve_modals_by_pressing_enter_key": true,
+  "command_palette": {
+    "re_execute_last_shell_command": {
+      "enabled": true,
+      "prefix": "Re-execute: "
+    }
+  },
+  "max_visible_lines_in_shell_command_fields": false,
+  "shell_commands": [
+    {
+      "id": "sc-sync-canvas-map",
+      "alias": "✨ キャンバスマップ整列 (MD -> Canvas)",
+      "platform_specific_commands": {
+        "default": "PATH=$PATH:/usr/local/bin:/opt/homebrew/bin npm run sync-vaults"
+      },
+      "icon": "lucide-map",
+      "working_directory": {
+        "path": "/Users/ivix/Library/Mobile Documents/com~apple~CloudDocs/2026/creative/coding/visual-novel-sandbox",
+        "type": "absolute"
+      },
+      "events": [],
+      "preactions": [],
+      "postactions": [
+        {
+          "id": "postaction-1",
+          "action": "obsidian_notification",
+          "message": "🗺️ キャンバスマップをきれいに最新整列しました！"
+        }
+      ],
+      "shells": {},
+      "confirm_execution": false,
+      "ignore_error_codes": [],
+      "input_contents": {
+        "stdin": null
+      },
+      "output_handlers": {
+        "stdout": {
+          "handler": "ignore",
+          "convert_ansi_code": true
+        },
+        "stderr": {
+          "handler": "notification",
+          "convert_ansi_code": true
+        }
+      },
+      "output_wrappers": {
+        "stdout": null,
+        "stderr": null
+      },
+      "output_channel_order": "stdout-first",
+      "output_handling_mode": "buffered",
+      "execution_notification_mode": null,
+      "debounce": null,
+      "command_palette_availability": "enabled",
+      "variable_default_values": {}
+    },
+    {
+      "id": "sc-sync-canvas-to-md",
+      "alias": "🔄 キャンバスからMD構築 (Canvas -> MD)",
+      "platform_specific_commands": {
+        "default": "PATH=$PATH:/usr/local/bin:/opt/homebrew/bin npm run sync-canvas"
+      },
+      "icon": "lucide-file-plus",
+      "working_directory": {
+        "path": "/Users/ivix/Library/Mobile Documents/com~apple~CloudDocs/2026/creative/coding/visual-novel-sandbox",
+        "type": "absolute"
+      },
+      "events": [],
+      "preactions": [],
+      "postactions": [
+        {
+          "id": "postaction-2",
+          "action": "obsidian_notification",
+          "message": "📄 キャンバスのカードからMDファイルと選択肢を同期構築しました！"
+        }
+      ],
+      "shells": {},
+      "confirm_execution": false,
+      "ignore_error_codes": [],
+      "input_contents": {
+        "stdin": null
+      },
+      "output_handlers": {
+        "stdout": {
+          "handler": "ignore",
+          "convert_ansi_code": true
+        },
+        "stderr": {
+          "handler": "notification",
+          "convert_ansi_code": true
+        }
+      },
+      "output_wrappers": {
+        "stdout": null,
+        "stderr": null
+      },
+      "output_channel_order": "stdout-first",
+      "output_handling_mode": "buffered",
+      "execution_notification_mode": null,
+      "debounce": null,
+      "command_palette_availability": "enabled",
+      "variable_default_values": {}
+    }
+  ],
+  "prompts": [],
+  "builtin_variables": {},
+  "custom_variables": [],
+  "custom_variables_notify_changes_via": {
+    "obsidian_uri": true,
+    "output_assignment": true
+  },
+  "custom_shells": [],
+  "output_wrappers": []
+}

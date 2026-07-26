@@ -4,8 +4,11 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "sync-vaults": "node scripts/sync-vaults.js",
+    "sync-canvas": "node scripts/sync-canvas-to-md.js",
+    "watch-vaults": "node --watch scripts/sync-vaults.js",
+    "dev": "npm run sync-vaults && vite",
+    "build": "npm run sync-vaults && vite build",
     "preview": "vite preview"
   },
   "keywords": [],

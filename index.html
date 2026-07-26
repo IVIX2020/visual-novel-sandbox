@@ -4,34 +4,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The House - Narrative Sandbox v0.1</title>
+    <title>The House - 8bit Narrative Sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/css/style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
-    <!-- 追記：ソース選択画面（初期状態） -->
+    <!-- ソース選択画面（初期状態） -->
     <div id="source-selector" class="inspection-overlay">
-        <div class="panel" style="max-width: 400px; text-align: center;">
-            <h2>The House: Previewer</h2>
-            <p class="small">コンテンツの読み込み元を選択してください</p>
+        <div class="panel" style="max-width: 480px; text-align: center; font-family: 'DotGothic16', monospace;">
+            <h2 style="color: var(--text-yellow); border-bottom: 2px dashed #fff; padding-bottom: 8px; margin-top: 4px;">
+                [ SELECT STORY SOURCE ]
+            </h2>
 
-            <button onclick="window.loadLocalFolder()" class="choices button"
-                style="width:100%; margin-bottom:12px; padding:16px;">
-                📂 ローカルフォルダを開く
-            </button>
+            <!-- モード1: プロジェクト内 Vault 選択 -->
+            <div style="background: #111122; border: 2px solid var(--text-cyan); padding: 12px; margin-bottom: 16px; text-align: left;">
+                <label style="color: var(--text-cyan); font-weight: bold; display: block; margin-bottom: 6px;">
+                    1. 🏠 PROJECT VAULTS (プロジェクト内保管庫)
+                </label>
+                <select id="preset-vault-select" style="width: 100%; background: #000; color: #fff; border: 2px solid var(--border-color); padding: 8px; font-family: inherit; font-size: 1rem; margin-bottom: 8px;">
+                    <option value="">[ 読み込み中... ]</option>
+                </select>
+                <button onclick="window.loadPresetVault()" class="system-btn"
+                    style="width:100%; padding:10px; color:var(--text-yellow); border-color:var(--text-yellow);">
+                    ▶ [PLAY SELECTED VAULT]
+                </button>
+            </div>
 
-            <hr style="border:0; border-top:1px solid #333; margin:16px 0;">
+            <!-- モード2: 外部ローカルフォルダ選択 -->
+            <div style="background: #112211; border: 2px solid var(--text-green); padding: 12px; margin-bottom: 16px; text-align: left;">
+                <label style="color: var(--text-green); font-weight: bold; display: block; margin-bottom: 6px;">
+                    2. 💻 OPEN LOCAL OBSIDIAN VAULT
+                </label>
+                <button onclick="window.loadLocalFolder()" class="system-btn"
+                    style="width:100%; padding:10px; color:var(--text-green); border-color:var(--text-green);">
+                    📂 [SELECT FOLDER FROM PC]
+                </button>
+            </div>
 
-            <input type="text" id="github-url" placeholder="user/repo"
-                style="width:100%; background:#000; color:#fff; border:1px solid #444; padding:8px; margin-bottom:8px;">
-            <button onclick="window.loadRemoteRepo()" class="system-btn" style="padding:10px;">
-                🌐 GitHubから読み込む
-            </button>
-            <button onclick="window.loadRemoteRepo('IVIX2020/the-house-content')" class="system-btn"
-                style="padding:10px; margin-top:8px; border-color:#4a9eff; color:#4a9eff;">
-                ✨ デモを読み込む (The House)
-            </button>
+            <!-- モード3: GitHub リポジトリ選択 -->
+            <div style="background: #221122; border: 2px solid #aa55ff; padding: 12px; text-align: left;">
+                <label style="color: #aa55ff; font-weight: bold; display: block; margin-bottom: 6px;">
+                    3. 🌐 LOAD FROM GITHUB REPOSITORY
+                </label>
+                <input type="text" id="github-url" placeholder="username/repository"
+                    style="width:100%; background:#000; color:#fff; border:2px solid var(--border-color); padding:8px; margin-bottom:8px; font-family:inherit;">
+                <button onclick="window.loadRemoteRepo()" class="system-btn" style="width:100%; padding:10px; color:#aa55ff; border-color:#aa55ff;">
+                    🌐 [LOAD GITHUB DATA]
+                </button>
+            </div>
         </div>
     </div>
 
@@ -50,48 +74,48 @@
         <!-- サイドバー：ステータス表示 -->
         <aside class="sidebar">
             <section class="panel">
-                <h3>Objects</h3>
+                <h3>ITEMS</h3>
                 <div id="object-list">
                     <!-- JSで動的に生成 -->
                 </div>
             </section>
 
             <section class="panel">
-                <h3>Memories</h3>
+                <h3>MEMORIES</h3>
                 <div id="memory-list">
                     <!-- JSで動的に生成 -->
                 </div>
             </section>
 
             <section class="panel">
-                <h3>Audio</h3>
-                <div id="audio-status" class="small" style="color:#f0a000; margin-bottom:8px;">状態: 未初期化 (クリックして開始)</div>
-                <div class="small">BGM: <input type="range" min="0" max="1" step="0.1" value="0.15"
+                <h3>SOUND ENGINE</h3>
+                <div id="audio-status" class="small" style="color:var(--text-yellow); margin-bottom:8px;">[STATUS: STANDBY]</div>
+                <div class="small" style="margin-bottom:4px;">BGM: <input type="range" min="0" max="1" step="0.1" value="0.15"
                         onchange="window.setVolume('bgm', this.value)"></div>
                 <div class="small">SE: <input type="range" min="0" max="1" step="0.1" value="1.0"
                         onchange="window.setVolume('se', this.value)"></div>
             </section>
 
             <section class="panel">
-                <h3>System</h3>
+                <h3>SYSTEM COMMANDS</h3>
                 <div class="system-grid">
-                    <button onclick="window.exportSave()" class="system-btn" title="セーブ"><i
-                            data-lucide="save"></i></button>
-                    <button onclick="document.getElementById('save-upload').click()" class="system-btn" title="ロード"><i
-                            data-lucide="upload"></i></button>
-                    <button onclick="window.showMap()" class="system-btn" title="マップ表示"><i
-                            data-lucide="map"></i></button>
-                    <button onclick="window.returnToLoader()" class="system-btn" title="ソース選択に戻る"><i
-                            data-lucide="log-out"></i></button>
-                    <button onclick="window.gameReset()" class="system-btn reset" title="初期化"><i
-                            data-lucide="refresh-cw"></i></button>
+                    <button onclick="window.exportSave()" class="system-btn" title="SAVE"><i
+                            data-lucide="save"></i> SAVE</button>
+                    <button onclick="document.getElementById('save-upload').click()" class="system-btn" title="LOAD"><i
+                            data-lucide="upload"></i> LOAD</button>
+                    <button onclick="window.showMap()" class="system-btn" title="MAP"><i
+                            data-lucide="map"></i> MAP</button>
+                    <button onclick="window.returnToLoader()" class="system-btn" title="EXIT"><i
+                            data-lucide="log-out"></i> EXIT</button>
+                    <button onclick="window.gameReset()" class="system-btn reset" title="RESET"><i
+                            data-lucide="refresh-cw"></i> RESET ALL</button>
                 </div>
                 <input type="file" id="save-upload" style="display:none" accept=".json">
-                <div id="save-status" class="small" style="margin-top:8px;">進捗は自動保存されています</div>
+                <div id="save-status" class="small" style="margin-top:8px;">AUTO SAVE: ACTIVE</div>
             </section>
 
-            <footer class="panel small">
-                The House: Narrative Sandbox v0.1
+            <footer class="panel small" style="text-align:center;">
+                THE HOUSE 8BIT v0.2
             </footer>
         </aside>
 

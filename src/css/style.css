@@ -1,250 +1,347 @@
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+:root {
+    --bg-color: #050508;
+    --window-bg: #0c0c14;
+    --text-color: #ffffff;
+    --text-yellow: #ffff55;
+    --text-green: #55ff55;
+    --text-cyan: #55ffff;
+    --border-color: #ffffff;
+    --dim-color: #666688;
+}
+
+* {
+    box-sizing: border-box;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
 body {
     margin: 0;
-    background: #0c0c0c;
-    color: #f5f5f5;
-    font-family: "Noto Serif JP", "BIZ UDPMincho", serif;
+    padding: 12px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'DotGothic16', monospace;
+    font-size: 16px;
     line-height: 1.6;
+    letter-spacing: 0.05em;
+    user-select: none;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* CRT スキャンライン効果 */
+body::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.4;
 }
 
 .app {
     display: grid;
-    grid-template-columns: 1fr 320px;
-    grid-template-rows: 60vh 40vh;
-    height: 100vh;
+    grid-template-columns: 1fr 280px;
+    grid-template-rows: 40vh 1fr;
+    gap: 12px;
+    height: calc(100vh - 24px);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .app.hidden {
     display: none !important;
 }
 
-hr {
-    border: 0;
-    border-top: 1px solid #333;
+/* レトロウィンドウ共通スタイル */
+.panel, .image-pane, .text-pane, .inspection-overlay .panel {
+    background: var(--window-bg);
+    border: 4px double var(--border-color);
+    box-shadow: inset 0 0 0 2px #000, 0 0 8px rgba(255, 255, 255, 0.15);
+    padding: 12px;
+    position: relative;
 }
 
-#github-url::placeholder {
-    color: #666;
-}
-
+/* 画像ウィンドウ */
 .image-pane {
-    background-color: #1a1a1a;
-    /* 画像がない時のフォールバック色 */
-    background-size: cover;
+    grid-column: 1;
+    grid-row: 1;
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    border-right: 1px solid #333;
-    transition: background-image 0.5s ease-in-out;
-    position: relative;
+    background-color: #000;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
     overflow: hidden;
-
-    /* 比率を維持しつつ、グリッドセルいっぱいに広げる設定に調整 */
-    width: 100%;
-    height: 100%;
-    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
 }
 
-/* インスペクション・オーバーレイ（画像エリア内） */
-.inspection-overlay {
+.image-pane::after {
+    content: "[ VISUAL MONITOR ]";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    backdrop-filter: blur(2px);
+    top: 6px;
+    left: 8px;
+    font-size: 12px;
+    color: var(--text-cyan);
+    background: rgba(0,0,0,0.7);
+    padding: 2px 6px;
 }
 
-.inspection-overlay.hidden {
-    display: none;
-}
-
-.overlay-content {
-    position: relative;
-    max-width: 70%;
-    max-height: 80%;
-    background: white;
-    padding: 10px 10px 40px 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    transform: rotate(-1deg);
-    transition: transform 0.3s ease;
-}
-
-.overlay-content img {
-    max-width: 100%;
-    max-height: 45vh;
-    display: block;
-    filter: sepia(0.2) contrast(1.1);
-}
-
-.close-overlay {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(0, 0, 0, 0.5);
-    border: none;
-    color: white;
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.sidebar {
-    background: #111;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 12px;
-    overflow-y: auto;
-}
-
-.panel {
-    border: 1px solid #333;
-    padding: 12px;
-    background: #161616;
-}
-
-.panel h3 {
-    margin-top: 0;
-    font-size: 1rem;
-    border-bottom: 1px solid #444;
-    padding-bottom: 4px;
-    color: #aaa;
-}
-
+/* テキスト＆操作エリア */
 .text-pane {
     grid-column: 1;
-    background: #101010;
-    border-top: 1px solid #333;
-    padding: 24px 40px;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
-    position: relative;
+    background: #000005;
 }
 
 #scene-title {
-    margin-top: 0;
-    font-weight: 500;
-    letter-spacing: 0.1em;
+    margin: 0 0 10px 0;
+    font-size: 1.25rem;
+    color: var(--text-yellow);
+    border-bottom: 2px dashed var(--border-color);
+    padding-bottom: 6px;
+}
+
+#scene-title::before {
+    content: "LOCATION: ";
+    color: var(--text-cyan);
 }
 
 #scene-text {
-    margin-bottom: 24px;
-    max-width: 800px;
+    flex-grow: 1;
+    margin-bottom: 12px;
+    color: var(--text-color);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 1.05rem;
 }
 
+#scene-text p {
+    margin-top: 0;
+    margin-bottom: 0.8em;
+}
+
+/* 選択肢ボタン */
 .choices {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-width: 400px;
+    border-top: 2px solid #333;
+    padding-top: 10px;
 }
 
 .choices button {
     text-align: left;
-    padding: 12px 16px;
-    background: #1a1a1a;
-    color: white;
-    border: 1px solid #444;
+    padding: 8px 12px;
+    background: #000;
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
     cursor: pointer;
     font-family: inherit;
-    transition: all 0.2s;
+    font-size: 1rem;
+    position: relative;
+    transition: all 0.1s;
 }
 
-.choices button:hover {
-    background: #242424;
-    border-color: #666;
-    padding-left: 20px;
+.choices button::before {
+    content: "▶ ";
+    color: transparent;
+    margin-right: 4px;
 }
 
-.small {
-    opacity: 0.5;
-    font-size: 0.8em;
-    margin-top: auto;
+.choices button:hover, .choices button:focus {
+    background: #181830;
+    color: var(--text-yellow);
+    border-color: var(--text-yellow);
+    box-shadow: inset 0 0 0 1px var(--text-yellow);
+    padding-left: 16px;
+}
+
+.choices button:hover::before, .choices button:focus::before {
+    color: var(--text-yellow);
+}
+
+/* サイドバー */
+.sidebar {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.sidebar .panel h3 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    color: var(--text-cyan);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.sidebar .panel h3::before {
+    content: "■ ";
+    color: var(--text-green);
 }
 
 .list-item {
-    font-size: 0.9em;
-    margin-bottom: 4px;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.list-item.checked {
+    color: var(--text-green);
 }
 
 .list-item.checked::before {
-    content: "☑ ";
-    color: #4a9eff;
+    content: "[*] ";
+    color: var(--text-green);
+}
+
+.list-item.unchecked {
+    color: var(--dim-color);
 }
 
 .list-item.unchecked::before {
-    content: "☐ ";
-    color: #666;
+    content: "[ ] ";
+    color: var(--dim-color);
 }
 
-.list-item.unknown {
-    color: #444;
-}
-
-/* ぼやけたテキスト（未解放の記憶） */
-.blurred {
-    filter: blur(6px);
-    background: rgba(255, 255, 255, 0.1);
-    color: transparent;
-    border-radius: 2px;
-    cursor: help;
-    transition: all 0.8s ease;
-    user-select: none;
-    display: inline-block;
-    padding: 0 4px;
-}
-
-.unlocked {
-    filter: blur(0);
-    background: transparent;
-    color: inherit;
-    transition: all 0.8s ease;
-}
-
+/* システムボタン */
 .system-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4px;
+    gap: 6px;
 }
 
 .system-btn {
-    background: #333;
-    color: #ccc;
-    border: 1px solid #444;
-    padding: 8px 4px;
-    font-size: 0.75em;
+    background: #000;
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    padding: 6px 4px;
+    font-family: inherit;
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.system-btn:hover {
+    background: #222244;
+    color: var(--text-yellow);
+    border-color: var(--text-yellow);
 }
 
 .system-btn.reset {
     grid-column: span 2;
-    margin-top: 4px;
-    color: #a44;
+    color: #ff5555;
+    border-color: #ff5555;
 }
 
-.system-btn:hover {
-    background: #444;
-    color: white;
+.system-btn.reset:hover {
+    background: #440000;
+    color: #ffffff;
 }
 
-.system-btn i {
-    width: 16px;
-    height: 16px;
+/* ぼやけたテキスト（8bitモザイク/暗号演出） */
+.blurred {
+    background: #222233;
+    color: #666688;
+    padding: 0 4px;
+    border: 1px dotted #555;
+    cursor: help;
+    font-style: italic;
 }
 
-/* Lucideアイコンの共通スタイル */
-i[data-lucide] {
-    display: inline-block;
-    vertical-align: middle;
-    stroke-width: 1.5px;
+.blurred::after {
+    content: " [????]";
+    color: var(--text-yellow);
+}
+
+.unlocked {
+    color: var(--text-green);
+    font-weight: bold;
+    animation: flash 0.4s ease-in-out;
+}
+
+@keyframes flash {
+    0% { background: #ffffff; color: #000; }
+    100% { background: transparent; color: var(--text-green); }
+}
+
+/* オーバーレイ・モーダル */
+.inspection-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.inspection-overlay.hidden {
+    display: none !important;
+}
+
+.overlay-content {
+    position: relative;
+    max-width: 80%;
+    max-height: 80%;
+    border: 4px double var(--border-color);
+    background: #000;
+    padding: 16px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.overlay-content img {
+    max-width: 100%;
+    max-height: 60vh;
+    display: block;
+    border: 2px solid var(--border-color);
+}
+
+.close-overlay {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    background: #000;
+    border: 2px solid var(--border-color);
+    color: var(--text-yellow);
+    width: 32px;
+    height: 32px;
+    font-family: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-overlay:hover {
+    background: #ff5555;
+    color: #fff;
+}
+
+.small {
+    font-size: 0.85rem;
+    color: var(--dim-color);
+}
+
+/* スライド音調・入力スライダー */
+input[type="range"] {
+    accent-color: var(--text-cyan);
 }

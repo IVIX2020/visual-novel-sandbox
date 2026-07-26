@@ -3,10 +3,20 @@
  */
 export const state = {
     currentSceneId: 'entrance',
+    previousSceneId: null,
+    historyStack: [],
     visitedScenes: new Set(),
     unlockedMemories: new Set(),
     foundObjects: new Set(),
     flags: {}, // 汎用フラグ
+
+    recordSceneTransition(newSceneId) {
+        if (this.currentSceneId && this.currentSceneId !== newSceneId) {
+            this.previousSceneId = this.currentSceneId;
+            this.historyStack.push(this.currentSceneId);
+        }
+        this.currentSceneId = newSceneId;
+    },
 
     // ストレージに保存
     save() {
@@ -72,7 +82,9 @@ export const state = {
     // 初期化
     reset() {
         localStorage.removeItem('the_house_save');
-        this.currentSceneId = 'entrance';
+        this.currentSceneId = null;
+        this.previousSceneId = null;
+        this.historyStack = [];
         this.visitedScenes = new Set();
         this.unlockedMemories = new Set();
         this.foundObjects = new Set();
