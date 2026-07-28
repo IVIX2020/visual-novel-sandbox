@@ -90,8 +90,8 @@ function parseChoiceFromLine(line) {
 
     const conditionsList = [];
 
-    // 1. タスクリスト形式の条件 [!key] または [key]
-    working = working.replace(/^\[([^\[\]\s]+)\]/i, (match, taskCond) => {
+    // 1. タスクリスト形式の条件 [!key] または [key] または [brass_key, !old_journal] (カッコ内に [ と ] が無い任意の文字列)
+    working = working.replace(/^\[([^\[\]]+)\]/i, (match, taskCond) => {
         if (taskCond && taskCond !== ' ' && taskCond !== 'x') {
             conditionsList.push(taskCond.trim());
         }
@@ -420,7 +420,16 @@ export class HttpDriver extends BaseDriver {
         return [];
     }
     resolveAsset(path) {
-        return encodeURI(this.baseUrl + path);
+        if (!path) return '';
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('blob:')) {
+            return path;
+        }
+        let cleanPath = path.replace(/^\.\//, '');
+        let cleanBase = this.baseUrl.replace(/^\.\//, '');
+        if (cleanPath.startsWith(cleanBase)) {
+            return encodeURI('./' + cleanPath);
+        }
+        return encodeURI(this.baseUrl + cleanPath);
     }
 }
 
