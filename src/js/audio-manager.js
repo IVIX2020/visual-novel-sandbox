@@ -4,7 +4,7 @@
 export class AudioManager {
     constructor() {
         this.ctx = null;
-        this.bgmVolume = 0.3;
+        this.bgmVolume = 0.4;
         this.seVolume = 0.8;
         this.isUnlocked = false;
         this.statusEl = null;
@@ -68,7 +68,6 @@ export class AudioManager {
     async unlock() {
         await this.initCtx();
         if (this.ctx && this.ctx.state === 'running') {
-            // ダミー音を発音してブラウザ解凍を確定
             try {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
@@ -83,7 +82,7 @@ export class AudioManager {
     }
 
     /* --- 8bit ビープ音合成機能 --- */
-    async playBeep(freq, duration = 0.06, type = 'square', startGain = 0.2) {
+    async playBeep(freq, duration = 0.06, type = 'square', startGain = 0.25) {
         if (!this.ctx || this.ctx.state !== 'running') {
             await this.initCtx();
         }
@@ -113,20 +112,20 @@ export class AudioManager {
 
     // 文字タイピング音 (パチッ)
     playBlip() {
-        const freq = 700 + Math.random() * 300;
-        this.playBeep(freq, 0.04, 'triangle', 0.12);
+        const freq = 750 + Math.random() * 250;
+        this.playBeep(freq, 0.04, 'triangle', 0.15);
     }
 
     // 選択肢移動・ホバー音 (ピコッ)
     playSelectSound() {
-        this.playBeep(987.77, 0.05, 'square', 0.15);
+        this.playBeep(987.77, 0.05, 'square', 0.18);
     }
 
     // 決定音 (ファンファーレ ピロリーン)
     playConfirmSound() {
-        this.playBeep(523.25, 0.07, 'square', 0.2); // C5
-        setTimeout(() => this.playBeep(659.25, 0.07, 'square', 0.2), 60); // E5
-        setTimeout(() => this.playBeep(783.99, 0.12, 'square', 0.2), 120); // G5
+        this.playBeep(523.25, 0.07, 'square', 0.22); // C5
+        setTimeout(() => this.playBeep(659.25, 0.07, 'square', 0.22), 60); // E5
+        setTimeout(() => this.playBeep(783.99, 0.12, 'square', 0.22), 120); // G5
     }
 
     /* --- 外部 BGM ＆ 合成アンビエント BGM 管理 --- */
@@ -148,23 +147,31 @@ export class AudioManager {
         this.currentBgmSrc = src;
         this.pendingBgmSrc = null;
 
-        // 1. 外部 mp3/wav ファイルの読み込み・再生を試みる
-        const audio = new Audio();
-        audio.loop = true;
-        audio.volume = this.bgmVolume;
-        audio.crossOrigin = 'anonymous';
-        audio.src = src;
-
-        this.currentBgmAudio = audio;
-
+        // まずファイルが存在するか軽微チェック
+        let fileExists = false;
         try {
-            await audio.play();
-            console.log(`[8bit Audio] File BGM playing: ${src}`);
-        } catch (err) {
-            console.warn(`[8bit Audio] External BGM load/autoplay failed (${src}), starting 8bit Synth Ambient...`, err);
-            // 2. 外部ファイルが存在しない (404) またはブラウザで制限された場合は8bit合成アンビエントBGMを始動！
-            await this.startSynthAmbientBgm(src);
+            const checkRes = await fetch(src, { method: 'HEAD' });
+            if (checkRes.ok) fileExists = true;
+        } catch (e) {}
+
+        if (fileExists) {
+            const audio = new Audio();
+            audio.loop = true;
+            audio.volume = this.bgmVolume;
+            audio.src = src;
+
+            this.currentBgmAudio = audio;
+            try {
+                await audio.play();
+                console.log(`[8bit Audio] File BGM playing: ${src}`);
+                return;
+            } catch (err) {
+                console.warn(`[8bit Audio] External BGM play failed (${src}), falling back to 8bit Synth Ambient...`);
+            }
         }
+
+        // ファイルが無い (404) 場合はスムーズに8bitレトロ合成BGMを起動！
+        await this.startSynthAmbientBgm(src);
     }
 
     stopBgm() {
@@ -179,19 +186,18 @@ export class AudioManager {
         this.currentBgmSrc = null;
     }
 
-    /* --- Web Audio API 8bit レトロ合成アンビエント BGM (完全非同期ガード付き) --- */
+    /* --- Web Audio API 8bit レトロ合成アンビエント BGM (豊かなアンビエント和音) --- */
     async startSynthAmbientBgm(seedTag = '') {
         this.stopSynthAmbientBgm();
         const unlocked = await this.initCtx();
         if (!unlocked || !this.ctx || this.ctx.state !== 'running') {
-            console.warn("[8bit Audio] Cannot start synth BGM while AudioContext is suspended.");
             return;
         }
 
         try {
             const now = this.ctx.currentTime;
 
-            // 雨音・風音用ホワイトノイズ
+            // 1. 雨音・風音用ノイズ
             const bufferSize = this.ctx.sampleRate * 2;
             const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
             const output = noiseBuffer.getChannelData(0);
@@ -205,29 +211,38 @@ export class AudioManager {
 
             const filter = this.ctx.createBiquadFilter();
             filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(450, now);
+            filter.frequency.setValueAtTime(600, now);
 
             const noiseGain = this.ctx.createGain();
-            noiseGain.gain.setValueAtTime(0.04 * this.bgmVolume, now);
+            noiseGain.gain.setValueAtTime(0.06 * this.bgmVolume, now);
 
             whiteNoise.connect(filter);
             filter.connect(noiseGain);
             noiseGain.connect(this.ctx.destination);
             whiteNoise.start(now);
 
-            // 8bitレトロアンビエント低音 (110Hz A2 和音)
-            const osc = this.ctx.createOscillator();
-            const oscGain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(110, now);
-            oscGain.gain.setValueAtTime(0.08 * this.bgmVolume, now);
+            // 2. 8bitレトロ低音ドローン (110Hz A2)
+            const osc1 = this.ctx.createOscillator();
+            const oscGain1 = this.ctx.createGain();
+            osc1.type = 'triangle';
+            osc1.frequency.setValueAtTime(110, now);
+            oscGain1.gain.setValueAtTime(0.12 * this.bgmVolume, now);
+            osc1.connect(oscGain1);
+            oscGain1.connect(this.ctx.destination);
+            osc1.start(now);
 
-            osc.connect(oscGain);
-            oscGain.connect(this.ctx.destination);
-            osc.start(now);
+            // 3. 和音・ハーモニクス (164.81Hz E3 - 5度上の豊かな響き)
+            const osc2 = this.ctx.createOscillator();
+            const oscGain2 = this.ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(164.81, now);
+            oscGain2.gain.setValueAtTime(0.08 * this.bgmVolume, now);
+            osc2.connect(oscGain2);
+            oscGain2.connect(this.ctx.destination);
+            osc2.start(now);
 
-            this.synthBgmNodes = { whiteNoise, filter, noiseGain, osc, oscGain };
-            console.log("[8bit Audio] Synth Ambient BGM generated and active!");
+            this.synthBgmNodes = { whiteNoise, filter, noiseGain, osc1, oscGain1, osc2, oscGain2 };
+            console.log("[8bit Audio] Enhanced Synth Ambient BGM active!");
         } catch (e) {
             console.warn("Synth BGM error:", e);
         }
@@ -237,7 +252,8 @@ export class AudioManager {
         if (this.synthBgmNodes) {
             try {
                 if (this.synthBgmNodes.whiteNoise) this.synthBgmNodes.whiteNoise.stop();
-                if (this.synthBgmNodes.osc) this.synthBgmNodes.osc.stop();
+                if (this.synthBgmNodes.osc1) this.synthBgmNodes.osc1.stop();
+                if (this.synthBgmNodes.osc2) this.synthBgmNodes.osc2.stop();
             } catch (e) {}
             this.synthBgmNodes = null;
         }
@@ -263,8 +279,10 @@ export class AudioManager {
             if (this.currentBgmAudio) {
                 this.currentBgmAudio.volume = floatVal;
             }
-            if (this.synthBgmNodes && this.synthBgmNodes.noiseGain) {
-                this.synthBgmNodes.noiseGain.gain.setValueAtTime(0.04 * floatVal, this.ctx ? this.ctx.currentTime : 0);
+            if (this.synthBgmNodes) {
+                if (this.synthBgmNodes.noiseGain) this.synthBgmNodes.noiseGain.gain.setValueAtTime(0.06 * floatVal, this.ctx ? this.ctx.currentTime : 0);
+                if (this.synthBgmNodes.oscGain1) this.synthBgmNodes.oscGain1.gain.setValueAtTime(0.12 * floatVal, this.ctx ? this.ctx.currentTime : 0);
+                if (this.synthBgmNodes.oscGain2) this.synthBgmNodes.oscGain2.gain.setValueAtTime(0.08 * floatVal, this.ctx ? this.ctx.currentTime : 0);
             }
         }
         if (type === 'se') {
