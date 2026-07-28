@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             state.reset(); // シナリオ切り替え時はステートリセット
             engine = new Engine(loader);
+            engine.audio.unlock();
+            engine.audio.playConfirmSound();
             await engine.init();
             setupAudioUnlock();
         } catch (e) {

@@ -265,8 +265,9 @@ export class Engine {
                 nextBtn.innerHTML = "▶ 次へ [NEXT]";
                 nextBtn.style.borderColor = "var(--text-yellow)";
                 nextBtn.style.color = "var(--text-yellow)";
-                nextBtn.onmouseenter = () => this.audio.playSelectSound();
+                nextBtn.onmouseenter = () => { this.audio.unlock(); this.audio.playSelectSound(); };
                 nextBtn.onclick = () => {
+                    this.audio.unlock();
                     this.audio.playConfirmSound();
                     this.renderSecPage(this.currentSecPageIndex + 1);
                 };
@@ -281,8 +282,9 @@ export class Engine {
                 if (choice.condition && !state.check(choice.condition)) return;
                 const button = document.createElement('button');
                 button.innerHTML = choice.label;
-                button.onmouseenter = () => this.audio.playSelectSound();
+                button.onmouseenter = () => { this.audio.unlock(); this.audio.playSelectSound(); };
                 button.onclick = () => {
+                    this.audio.unlock();
                     this.audio.playConfirmSound();
                     if (choice.action === 'move') this.render(choice.target);
                     else if (choice.action === 'section') this.handleSectionChoice(choice);
@@ -294,8 +296,9 @@ export class Engine {
             // 戻るボタンも追加
             const backBtn = document.createElement('button');
             backBtn.textContent = "◀ 戻る [RETURN]";
-            backBtn.onmouseenter = () => this.audio.playSelectSound();
+            backBtn.onmouseenter = () => { this.audio.unlock(); this.audio.playSelectSound(); };
             backBtn.onclick = () => {
+                this.audio.unlock();
                 this.audio.playConfirmSound();
                 this.renderPage(this.currentPageIndex);
                 this.hideOverlay();
@@ -312,8 +315,9 @@ export class Engine {
             nextBtn.innerHTML = "▶ 次へ [NEXT]";
             nextBtn.style.borderColor = "var(--text-yellow)";
             nextBtn.style.color = "var(--text-yellow)";
-            nextBtn.onmouseenter = () => this.audio.playSelectSound();
+            nextBtn.onmouseenter = () => { this.audio.unlock(); this.audio.playSelectSound(); };
             nextBtn.onclick = () => {
+                this.audio.unlock();
                 this.audio.playConfirmSound();
                 this.renderPage(this.currentPageIndex + 1);
             };
@@ -338,8 +342,9 @@ export class Engine {
             if (choice.condition && !state.check(choice.condition)) return;
             const button = document.createElement('button');
             button.innerHTML = choice.label;
-            button.onmouseenter = () => this.audio.playSelectSound();
+            button.onmouseenter = () => { this.audio.unlock(); this.audio.playSelectSound(); };
             button.onclick = () => {
+                this.audio.unlock();
                 this.audio.playConfirmSound();
                 if (choice.action === 'move') this.render(choice.target);
                 else if (choice.action === 'section') this.handleSectionChoice(choice);
