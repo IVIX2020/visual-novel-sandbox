@@ -1,10 +1,10 @@
 /**
- * 8bit レトロ音響管理エンジン (Web Audio API 合成音響 & 外部BGM/SE ＋ 未解放時自動キュースタート)
+ * 8bit レトロ音響管理エンジン (Web Audio API 合成音響 & 外部BGM/SE)
  */
 export class AudioManager {
     constructor() {
         this.ctx = null;
-        this.bgmVolume = 0.4;
+        this.bgmVolume = 0.2;
         this.seVolume = 0.8;
         this.isUnlocked = false;
         this.statusEl = null;
@@ -16,7 +16,7 @@ export class AudioManager {
         this.currentBgmAudio = null;
         this.currentBgmSrc = null;
 
-        // Web Audio API による8bit合成アンビエントBGMノード
+        // Web Audio API による8bit合成ノード
         this.synthBgmNodes = null;
 
         // 自動解凍リスナーの登録
@@ -81,7 +81,7 @@ export class AudioManager {
         return this.isUnlocked;
     }
 
-    /* --- 8bit ビープ音合成機能 --- */
+    /* --- 8bit ビープ音合成機能 (SEのみ) --- */
     async playBeep(freq, duration = 0.06, type = 'square', startGain = 0.25) {
         if (!this.ctx || this.ctx.state !== 'running') {
             await this.initCtx();
@@ -128,14 +128,13 @@ export class AudioManager {
         setTimeout(() => this.playBeep(783.99, 0.12, 'square', 0.22), 120); // G5
     }
 
-    /* --- 外部 BGM ＆ 合成アンビエント BGM 管理 --- */
+    /* --- BGM 管理 --- */
     async playBgm(src) {
         if (!src) return;
         this.pendingBgmSrc = src;
 
         const unlocked = await this.initCtx();
         if (!unlocked || !this.ctx || this.ctx.state !== 'running') {
-            console.log(`[8bit Audio] BGM playback queued for user interaction: ${src}`);
             return;
         }
 
@@ -147,7 +146,7 @@ export class AudioManager {
         this.currentBgmSrc = src;
         this.pendingBgmSrc = null;
 
-        // まずファイルが存在するか軽微チェック
+        // MP3/WAVファイルが存在する場合のみ再生する（低音ブーン音合成BGMは完全カット）
         let fileExists = false;
         try {
             const checkRes = await fetch(src, { method: 'HEAD' });
@@ -164,14 +163,12 @@ export class AudioManager {
             try {
                 await audio.play();
                 console.log(`[8bit Audio] File BGM playing: ${src}`);
-                return;
             } catch (err) {
-                console.warn(`[8bit Audio] External BGM play failed (${src}), falling back to 8bit Synth Ambient...`);
+                console.warn(`[8bit Audio] External BGM play error (${src})`, err);
             }
+        } else {
+            console.log(`[8bit Audio] No external BGM file found (${src}). Remaining quiet.`);
         }
-
-        // ファイルが無い (404) 場合はスムーズに8bitレトロ合成BGMを起動！
-        await this.startSynthAmbientBgm(src);
     }
 
     stopBgm() {
@@ -184,68 +181,6 @@ export class AudioManager {
         }
         this.stopSynthAmbientBgm();
         this.currentBgmSrc = null;
-    }
-
-    /* --- Web Audio API 8bit レトロ合成アンビエント BGM (豊かなアンビエント和音) --- */
-    async startSynthAmbientBgm(seedTag = '') {
-        this.stopSynthAmbientBgm();
-        const unlocked = await this.initCtx();
-        if (!unlocked || !this.ctx || this.ctx.state !== 'running') {
-            return;
-        }
-
-        try {
-            const now = this.ctx.currentTime;
-
-            // 1. 雨音・風音用ノイズ
-            const bufferSize = this.ctx.sampleRate * 2;
-            const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
-            }
-
-            const whiteNoise = this.ctx.createBufferSource();
-            whiteNoise.buffer = noiseBuffer;
-            whiteNoise.loop = true;
-
-            const filter = this.ctx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(600, now);
-
-            const noiseGain = this.ctx.createGain();
-            noiseGain.gain.setValueAtTime(0.06 * this.bgmVolume, now);
-
-            whiteNoise.connect(filter);
-            filter.connect(noiseGain);
-            noiseGain.connect(this.ctx.destination);
-            whiteNoise.start(now);
-
-            // 2. 8bitレトロ低音ドローン (110Hz A2)
-            const osc1 = this.ctx.createOscillator();
-            const oscGain1 = this.ctx.createGain();
-            osc1.type = 'triangle';
-            osc1.frequency.setValueAtTime(110, now);
-            oscGain1.gain.setValueAtTime(0.12 * this.bgmVolume, now);
-            osc1.connect(oscGain1);
-            oscGain1.connect(this.ctx.destination);
-            osc1.start(now);
-
-            // 3. 和音・ハーモニクス (164.81Hz E3 - 5度上の豊かな響き)
-            const osc2 = this.ctx.createOscillator();
-            const oscGain2 = this.ctx.createGain();
-            osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(164.81, now);
-            oscGain2.gain.setValueAtTime(0.08 * this.bgmVolume, now);
-            osc2.connect(oscGain2);
-            oscGain2.connect(this.ctx.destination);
-            osc2.start(now);
-
-            this.synthBgmNodes = { whiteNoise, filter, noiseGain, osc1, oscGain1, osc2, oscGain2 };
-            console.log("[8bit Audio] Enhanced Synth Ambient BGM active!");
-        } catch (e) {
-            console.warn("Synth BGM error:", e);
-        }
     }
 
     stopSynthAmbientBgm() {
@@ -278,11 +213,6 @@ export class AudioManager {
             this.bgmVolume = floatVal;
             if (this.currentBgmAudio) {
                 this.currentBgmAudio.volume = floatVal;
-            }
-            if (this.synthBgmNodes) {
-                if (this.synthBgmNodes.noiseGain) this.synthBgmNodes.noiseGain.gain.setValueAtTime(0.06 * floatVal, this.ctx ? this.ctx.currentTime : 0);
-                if (this.synthBgmNodes.oscGain1) this.synthBgmNodes.oscGain1.gain.setValueAtTime(0.12 * floatVal, this.ctx ? this.ctx.currentTime : 0);
-                if (this.synthBgmNodes.oscGain2) this.synthBgmNodes.oscGain2.gain.setValueAtTime(0.08 * floatVal, this.ctx ? this.ctx.currentTime : 0);
             }
         }
         if (type === 'se') {
