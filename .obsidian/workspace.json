@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "public/vaults/the_house/entrance.md",
+                "file": "docs/OBSIDIAN_AUTHORING_GUIDE.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "entrance"
+              "title": "OBSIDIAN_AUTHORING_GUIDE"
             }
           }
         ]
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "public/vaults/the_house/entrance.md",
+                "file": "docs/OBSIDIAN_AUTHORING_GUIDE.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of entrance"
+              "title": "Outline of OBSIDIAN_AUTHORING_GUIDE"
             }
           }
         ],
@@ -186,6 +186,11 @@
   },
   "active": "a9d0f5dae3f521bb",
   "lastOpenFiles": [
+    "dist/assets/index-BriTA8ig.js",
+    "Obsidian_8-Bit_Game_Engine.pdf",
+    "docs/SYSTEM_ENGINEERING.md",
+    "docs/The_House_Manifesto.md",
+    "public/vaults/the_house/entrance.md",
     "dist/assets/index-DDZf8nls.js",
     "dist/assets/index-NFixdLrD.js",
     "docs/index.html",
@@ -222,8 +227,6 @@
     "docs/vaults/the_house/files.json",
     "docs/vaults/the_house/entrance.md",
     "docs/vaults/the_house/README.md",
-    "docs/vaults/桃太郎",
-    "docs/vaults/the_house",
     "docs/vaults/README.md",
     "public/vaults/桃太郎/story_map.canvas",
     "dist/vaults/the_house/images/study.jpg",
@@ -232,9 +235,6 @@
     "dist/vaults/the_house/images/entrance.jpg",
     "dist/vaults/桃太郎/遺産争い.md",
     "dist/vaults/桃太郎/川で.md",
-    "dist/vaults/桃太郎/レスぺ購入！.md",
-    "dist/vaults/桃太郎/ステーキを焼くぜ.md",
-    "dist/vaults/桃太郎/お婆さんが芸能界デビュー.md",
     "dist/vaults/桃太郎/story_map.canvas",
     "dist/vaults/the_house/story_map.canvas",
     "vaults/test/story_map.canvas",
