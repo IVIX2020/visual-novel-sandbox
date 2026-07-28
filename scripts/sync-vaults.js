@@ -277,11 +277,11 @@ export function syncVaults() {
         });
     });
 
-    fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2), 'utf-8');
-
-    // コピー: public/vaults/ に同期して vite build (dist/) や静的サーバーで動作するようにする
+    // コピー: public/vaults/ および docs/vaults/ に同期して GitHub Pages (docs/) や Vite dev で動作するようにする
     const publicVaultsDir = path.join(rootDir, 'public', 'vaults');
+    const docsVaultsDir = path.join(rootDir, 'docs', 'vaults');
     copyDirRecursive(vaultsDir, publicVaultsDir);
+    copyDirRecursive(vaultsDir, docsVaultsDir);
 }
 
 syncVaults();

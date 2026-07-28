@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The House - 8bit Narrative Sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" crossorigin src="./assets/index-DWpwgoNC.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-GJbSPN0o.css">
+</head>
+
+<body>
+    <!-- ソース選択画面（初期状態） -->
+    <div id="source-selector" class="inspection-overlay">
+        <div class="panel" style="max-width: 480px; text-align: center; font-family: 'DotGothic16', monospace;">
+            <h2 style="color: var(--text-yellow); border-bottom: 2px dashed #fff; padding-bottom: 8px; margin-top: 4px;">
+                [ SELECT STORY SOURCE ]
+            </h2>
+
+            <!-- モード1: プロジェクト内 Vault 選択 -->
+            <div style="background: #111122; border: 2px solid var(--text-cyan); padding: 12px; margin-bottom: 16px; text-align: left;">
+                <label style="color: var(--text-cyan); font-weight: bold; display: block; margin-bottom: 6px;">
+                    1. 🏠 PROJECT VAULTS (プロジェクト内保管庫)
+                </label>
+                <select id="preset-vault-select" style="width: 100%; background: #000; color: #fff; border: 2px solid var(--border-color); padding: 8px; font-family: inherit; font-size: 1rem; margin-bottom: 8px;">
+                    <option value="">[ 読み込み中... ]</option>
+                </select>
+                <button onclick="window.loadPresetVault()" class="system-btn"
+                    style="width:100%; padding:10px; color:var(--text-yellow); border-color:var(--text-yellow);">
+                    ▶ [PLAY SELECTED VAULT]
+                </button>
+            </div>
+
+            <!-- モード2: 外部ローカルフォルダ選択 -->
+            <div style="background: #112211; border: 2px solid var(--text-green); padding: 12px; margin-bottom: 16px; text-align: left;">
+                <label style="color: var(--text-green); font-weight: bold; display: block; margin-bottom: 6px;">
+                    2. 💻 OPEN LOCAL OBSIDIAN VAULT
+                </label>
+                <button onclick="window.loadLocalFolder()" class="system-btn"
+                    style="width:100%; padding:10px; color:var(--text-green); border-color:var(--text-green);">
+                    📂 [SELECT FOLDER FROM PC]
+                </button>
+            </div>
+
+            <!-- モード3: GitHub リポジトリ選択 -->
+            <div style="background: #221122; border: 2px solid #aa55ff; padding: 12px; text-align: left;">
+                <label style="color: #aa55ff; font-weight: bold; display: block; margin-bottom: 6px;">
+                    3. 🌐 LOAD FROM GITHUB REPOSITORY
+                </label>
+                <input type="text" id="github-url" placeholder="username/repository"
+                    style="width:100%; background:#000; color:#fff; border:2px solid var(--border-color); padding:8px; margin-bottom:8px; font-family:inherit;">
+                <button onclick="window.loadRemoteRepo()" class="system-btn" style="width:100%; padding:10px; color:#aa55ff; border-color:#aa55ff;">
+                    🌐 [LOAD GITHUB DATA]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="app hidden">
+        <!-- 画像表示エリア -->
+        <div id="image-pane" class="image-pane">
+            <!-- インスペクション・オーバーレイ（画像エリア内に配置） -->
+            <div id="inspection-overlay" class="inspection-overlay hidden">
+                <div class="overlay-content">
+                    <img id="inspection-image" src="" alt="inspection">
+                    <button id="close-overlay" class="close-overlay">×</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- サイドバー：ステータス表示 -->
+        <aside class="sidebar">
+            <section class="panel">
+                <h3>ITEMS</h3>
+                <div id="object-list">
+                    <!-- JSで動的に生成 -->
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>MEMORIES</h3>
+                <div id="memory-list">
+                    <!-- JSで動的に生成 -->
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>SOUND ENGINE</h3>
+                <div id="audio-status" class="small" style="color:var(--text-yellow); margin-bottom:8px;">[STATUS: STANDBY]</div>
+                <div class="small" style="margin-bottom:4px;">BGM: <input type="range" min="0" max="1" step="0.1" value="0.15"
+                        onchange="window.setVolume('bgm', this.value)"></div>
+                <div class="small">SE: <input type="range" min="0" max="1" step="0.1" value="1.0"
+                        onchange="window.setVolume('se', this.value)"></div>
+            </section>
+
+            <section class="panel">
+                <h3>SYSTEM COMMANDS</h3>
+                <div class="system-grid">
+                    <button onclick="window.exportSave()" class="system-btn" title="SAVE"><i
+                            data-lucide="save"></i> SAVE</button>
+                    <button onclick="document.getElementById('save-upload').click()" class="system-btn" title="LOAD"><i
+                            data-lucide="upload"></i> LOAD</button>
+                    <button onclick="window.showMap()" class="system-btn" title="MAP"><i
+                            data-lucide="map"></i> MAP</button>
+                    <button onclick="window.returnToLoader()" class="system-btn" title="EXIT"><i
+                            data-lucide="log-out"></i> EXIT</button>
+                    <button onclick="window.gameReset()" class="system-btn reset" title="RESET"><i
+                            data-lucide="refresh-cw"></i> RESET ALL</button>
+                </div>
+                <input type="file" id="save-upload" style="display:none" accept=".json">
+                <div id="save-status" class="small" style="margin-top:8px;">AUTO SAVE: ACTIVE</div>
+            </section>
+
+            <footer class="panel small" style="text-align:center;">
+                THE HOUSE 8BIT v0.2
+            </footer>
+        </aside>
+
+        <!-- メインテキスト表示エリア -->
+        <main class="text-pane">
+            <h2 id="scene-title">読み込み中...</h2>
+            <div id="scene-text"></div>
+            <div id="choices" class="choices">
+                <!-- JSで動的に生成 -->
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>
