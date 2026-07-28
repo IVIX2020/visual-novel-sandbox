@@ -496,6 +496,25 @@ export class DataLoader {
         if (scene.image) scene.image = await this.driver.resolveAsset(scene.image);
         if (scene.bgm) scene.bgm = await this.driver.resolveAsset(`assets/audio/${scene.bgm}`);
         
+        if (scene.pages) {
+            for (const page of scene.pages) {
+                if (Array.isArray(page)) {
+                    for (const branch of page) {
+                        if (branch && branch.image) {
+                            branch.image = await this.driver.resolveAsset(branch.image);
+                        }
+                    }
+                }
+            }
+        }
+        if (scene.mainBranches) {
+            for (const branch of scene.mainBranches) {
+                if (branch && branch.image) {
+                    branch.image = await this.driver.resolveAsset(branch.image);
+                }
+            }
+        }
+
         for (const choice of scene.choices) {
             if (choice.itemImage) choice.itemImage = await this.driver.resolveAsset(choice.itemImage);
             if (choice.sfx) choice.sfx = await this.driver.resolveAsset(`assets/audio/${choice.sfx}`);

@@ -16,8 +16,7 @@ function formatTitle(id) {
 export default defineConfig({
     base: './',
     build: {
-        outDir: 'docs',
-        emptyOutDir: false,
+        outDir: 'dist',
         assetsDir: 'assets',
     },
     server: {

@@ -277,11 +277,9 @@ export function syncVaults() {
         });
     });
 
-    // コピー: public/vaults/ および docs/vaults/ に同期して GitHub Pages (docs/) や Vite dev で動作するようにする
+    // コピー: public/vaults/ に同期して Vite dev や vite build (dist/) で動作するようにする
     const publicVaultsDir = path.join(rootDir, 'public', 'vaults');
-    const docsVaultsDir = path.join(rootDir, 'docs', 'vaults');
     copyDirRecursive(vaultsDir, publicVaultsDir);
-    copyDirRecursive(vaultsDir, docsVaultsDir);
 }
 
 syncVaults();
