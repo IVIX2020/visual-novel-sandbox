@@ -55,7 +55,12 @@ export class Engine {
         document.body.addEventListener('click', () => this.audio.unlock(), { once: true });
 
         this.masterData = await this.loader.loadMasterData();
-        state.load();
+        state.setMasterData(this.masterData);
+        state.reset();
+        state.onChange = () => {
+            this.renderSidebar();
+            state.save();
+        };
         
         let startId = state.currentSceneId;
         if (startId) {
@@ -214,6 +219,17 @@ export class Engine {
         }, 25);
     }
 
+    applyPageFlags() {
+        if (!this.ui.text) return;
+        const callouts = this.ui.text.querySelectorAll('[data-flag]');
+        callouts.forEach(el => {
+            const flag = el.getAttribute('data-flag');
+            if (flag) {
+                state.setFlag(flag);
+            }
+        });
+    }
+
     skipTypewriter() {
         if (this.typewriterTimer) {
             clearInterval(this.typewriterTimer);
@@ -221,6 +237,7 @@ export class Engine {
         }
         this.ui.text.innerHTML = this.currentFullHtml;
         this.isTyping = false;
+        this.applyPageFlags();
         this.renderChoices(this.isSubViewActive);
     }
 
@@ -231,6 +248,7 @@ export class Engine {
         }
         this.ui.text.innerHTML = this.currentFullHtml;
         this.isTyping = false;
+        this.applyPageFlags();
         this.renderChoices(this.isSubViewActive);
     }
 
@@ -429,9 +447,11 @@ export class Engine {
         container.innerHTML = '';
         allItems.forEach(item => {
             const div = document.createElement('div');
-            const isFound = foundItems.has(item.id);
+            const itemKey = item.key || item.id;
+            const itemLabel = item.label || itemKey;
+            const isFound = foundItems.has(itemKey);
             div.className = `list-item ${isFound ? 'checked' : 'unchecked'}`;
-            div.textContent = isFound ? item.label : '?????';
+            div.textContent = isFound ? itemLabel : '?????';
             container.appendChild(div);
         });
     }

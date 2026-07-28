@@ -1,10 +1,14 @@
 # The House: Master Index
 
 ## Objects
-- shoes: 土間の靴
-- incense: 線香の香り
+- brass_key: 真鍮の小さな鍵
+- old_journal: 革表紙の日記帳
+- wooden_box: 桐の小箱
+- taiwan_letter: 1947年の古い手紙
 
 ## Memories
-- memory:shoes: 置き去りにされた革靴
-- memory:incense: 祖父の焚いていた線香
-- memory:garden_secret: 庭の隅に眠る石碑
+- shoes: 置き去りにされた革靴
+- incense: 祖父の焚いていた線香
+- garden_secret: 庭の隅に眠る石碑
+- journal_content: 日記に記された告白
+- taiwan_truth: 1947年の約束

@@ -92,29 +92,68 @@ export const state = {
         console.log('Progress Reset');
     },
 
+    masterObjectsKeys: new Set(),
+    masterMemoriesKeys: new Set(),
+
+    setMasterData(masterData) {
+        if (!masterData) return;
+        this.masterObjectsKeys = new Set((masterData.allObjects || []).map(o => o.key));
+        this.masterMemoriesKeys = new Set((masterData.allMemories || []).map(m => m.key));
+    },
+
     // フラグの設定
     setFlag(name, value = true) {
-        if (name.startsWith('!')) {
-            delete this.flags[name.substring(1)];
+        if (!name) return;
+        const rawName = name.trim();
+        if (rawName.startsWith('!')) {
+            const key = rawName.substring(1).replace(/^(memory|item):/, '').trim();
+            delete this.flags[key];
+            delete this.flags[rawName.substring(1)];
+            this.unlockedMemories.delete(key);
+            this.foundObjects.delete(key);
         } else {
-            this.flags[name] = value;
+            const cleanKey = rawName.replace(/^(memory|item):/, '').trim();
+            this.flags[cleanKey] = value;
+            this.flags[rawName] = value;
+
+            if (rawName.startsWith('memory:')) {
+                this.unlockedMemories.add(cleanKey);
+            } else if (rawName.startsWith('item:')) {
+                this.foundObjects.add(cleanKey);
+            } else {
+                // マスター目録の定義を参照して確実に分離
+                if (this.masterMemoriesKeys.has(cleanKey)) {
+                    this.unlockedMemories.add(cleanKey);
+                } else if (this.masterObjectsKeys.has(cleanKey)) {
+                    this.foundObjects.add(cleanKey);
+                } else {
+                    // 定義がない場合は汎用フラグとして記録
+                    this.flags[cleanKey] = value;
+                }
+            }
         }
-        console.log('Flags:', this.flags);
+        if (typeof this.onChange === 'function') {
+            this.onChange();
+        }
+        console.log('Flags:', this.flags, 'FoundObjects:', Array.from(this.foundObjects), 'UnlockedMemories:', Array.from(this.unlockedMemories));
     },
 
     // 条件式の評価 (フラグ、記憶、オブジェクトのいずれかに存在すれば真)
     check(condition) {
         if (!condition) return true;
-        condition = condition.trim();
-        const isNegated = condition.startsWith('!');
-        const key = isNegated ? condition.substring(1) : condition;
+        const conds = condition.trim().split(/[,&]/).map(c => c.trim()).filter(Boolean);
+        return conds.every(cond => {
+            const isNegated = cond.startsWith('!');
+            const rawKey = isNegated ? cond.substring(1) : cond;
+            const cleanKey = rawKey.replace(/^#/, '').replace(/^(memory|item):/, '').trim();
+            
+            const hasIt = !!this.flags[cleanKey] ||
+                !!this.flags[rawKey] ||
+                this.unlockedMemories.has(cleanKey) ||
+                this.foundObjects.has(cleanKey);
 
-        // フラグ、解放済みの記憶、発見済みのオブジェクトのいずれかをチェック
-        const hasIt = !!this.flags[key] ||
-            this.unlockedMemories.has(key) ||
-            this.foundObjects.has(key);
-
-        return isNegated ? !hasIt : hasIt;
+            return isNegated ? !hasIt : hasIt;
+        });
     },
 
     update(updates) {

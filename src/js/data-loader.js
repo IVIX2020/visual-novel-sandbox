@@ -15,13 +15,159 @@ function normalizeTarget(rawPath) {
 }
 
 /**
- * 共通のハイライト・分岐処理
+ * Callout ( > [!item] key や > [!memory] key ) の自動処理とHTML置換
+ * ※ 注意: ファイルパース時にはフラグをセットせず、data-flag 属性を埋め込み、画面表示時にのみ発動させる！
  */
+function processCalloutsAndMarkup(text, state) {
+    if (!text) return '';
+
+    let processed = text.replace(/^>\s*\[\!(item|memory|info|note|warning)\]\s*(.*?)\n((?:^>.*(?:\n|$))*)/gmi, (match, type, title, contentLines) => {
+        const key = title.trim();
+        const cleanContent = contentLines.replace(/^>\s?/gm, '').trim();
+        const typeLower = type.toLowerCase();
+        const isItem = typeLower === 'item';
+        const isMemory = typeLower === 'memory';
+        const icon = isItem ? '📦' : (isMemory ? '🧠' : '💬');
+        const badgeLabel = isItem ? 'ITEM GET' : (isMemory ? 'MEMORY UNLOCKED' : 'NOTE');
+        const flagAttr = (isItem ? 'item:' : (isMemory ? 'memory:' : '')) + key;
+
+        const parsedContent = cleanContent ? marked.parse(cleanContent) : '';
+
+        return `<div class="callout callout-${typeLower}" data-flag="${flagAttr}">
+            <div class="callout-header">
+                <span class="callout-icon">${icon}</span>
+                <span class="callout-badge">${badgeLabel}</span>
+                <strong class="callout-title">${key}</strong>
+            </div>
+            ${parsedContent ? `<div class="callout-content">${parsedContent}</div>` : ''}
+        </div>\n`;
+    });
+
+    return processed;
+}
+
+/**
+ * 共通のハイライト・伏字・ブラー処理
+ */
+function processHighlights(html, state) {
+    if (!html) return '';
+    return html.replace(/==(#?\w+)[|:\s]?([\s\S]*?)==/g, (match, rawCond, txt) => {
+        const cond = rawCond.replace(/^#/, '').trim();
+        const isUnlocked = state ? state.check(cond) : false;
+        return `<span class="${isUnlocked ? 'unlocked' : 'blurred'}" title="${isUnlocked ? '' : '記憶またはアイテムが必要です'}">${txt.trim()}</span>`;
+    });
+}
+
+/**
+ * 共通テキストパース
+ */
+function parseTextToHtml(rawText, state) {
+    const textWithCallouts = processCalloutsAndMarkup(rawText, state);
+    const html = marked.parse(textWithCallouts);
+    return processHighlights(html, state);
+}
+
+/**
+ * 1行の文字列からWikiLink・タスク条件・タグ条件・(if:)条件をパースする確定関数
+ */
+function parseChoiceFromLine(line) {
+    let working = line.trim();
+
+    // 画像埋め込み (![[...]]) は選択肢から完全除外
+    if (/!\[\[|!\[.*?\]\(.*?\)/.test(working)) {
+        return { label: '', action: 'none', target: null, id: null, condition: null, sfx: null };
+    }
+
+    // 文頭のリスト記号 (- , * , + ) を除去
+    working = working.replace(/^[-*+]\s*/, '').trim();
+
+    let condition = null;
+    let sfx = null;
+    let action = 'none';
+    let target = null;
+    let label = '';
+    let id = null;
+
+    const conditionsList = [];
+
+    // 1. タスクリスト形式の条件 [!key] または [key]
+    working = working.replace(/^\[([^\[\]\s]+)\]/i, (match, taskCond) => {
+        if (taskCond && taskCond !== ' ' && taskCond !== 'x') {
+            conditionsList.push(taskCond.trim());
+        }
+        return '';
+    }).trim();
+
+    // 2. タグ形式の条件 #if/!key や #if/key
+    working = working.replace(/#if\/([^\s]+)/gi, (match, tagCond) => {
+        if (tagCond) conditionsList.push(tagCond.trim());
+        return '';
+    }).trim();
+
+    // 3. (if:...) 条件の抽出
+    working = working.replace(/\(if:\s*(.*?)\)/gi, (match, ifCond) => {
+        if (ifCond) conditionsList.push(ifCond.trim());
+        return '';
+    }).trim();
+
+    if (conditionsList.length > 0) {
+        condition = conditionsList.join(',');
+    }
+
+    // 4. (sfx:...) 効果音
+    const sfxMatch = working.match(/\(sfx:\s*(.*?)\)/i);
+    if (sfxMatch) {
+        sfx = sfxMatch[1].trim();
+        working = working.replace(/\(sfx:\s*.*?\)/i, '').trim();
+    }
+
+    // 5. 旧イベント記法 (item:id|label) / (memory:id|label)
+    const eventMatch = working.match(/\((item|memory|event):\s*([^|]+)\|([^)]+)\)/i);
+    if (eventMatch) {
+        action = eventMatch[1].toLowerCase();
+        id = eventMatch[2].trim();
+        label = eventMatch[3].trim();
+    } else {
+        // 6. WikiLink [[target|label]] または [[target]]
+        const wikiMatch = working.match(/\[\[([^\]]+)\]\]/);
+        if (wikiMatch) {
+            const fullInner = wikiMatch[1].trim();
+            if (fullInner.includes('|')) {
+                const parts = fullInner.split('|');
+                const rawTarget = parts[0].trim();
+                label = parts[1].trim();
+                if (rawTarget.startsWith('#')) {
+                    action = 'section';
+                    target = rawTarget.replace(/^#+\s*/, '').trim();
+                } else {
+                    action = 'move';
+                    target = normalizeTarget(rawTarget);
+                }
+            } else {
+                const rawTarget = fullInner;
+                if (rawTarget.startsWith('#')) {
+                    action = 'section';
+                    target = rawTarget.replace(/^#+\s*/, '').trim();
+                } else {
+                    action = 'move';
+                    target = normalizeTarget(rawTarget);
+                }
+                label = target;
+            }
+        }
+    }
+
+    if (!label) {
+        label = working.replace(/^#+\s*/, '').trim();
+    }
+
+    return { label, action, target, id, condition, sfx };
+}
+
 function processContent(rawText, state) {
     let frontmatter = {};
     let body = rawText;
 
-    // Frontmatterのパース（オプショナル）
     const match = rawText.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     if (match) {
         try {
@@ -34,45 +180,32 @@ function processContent(rawText, state) {
 
     body = body.trim();
 
-    // セクション (## や ### の見出しブロック) の辞書化（^##+\s+ で分割）
     const sections = {};
     const sectionBlocks = body.split(/^##+\s+/gm);
     sectionBlocks.slice(1).forEach(block => {
         const lines = block.split('\n');
-        const secTitle = lines[0].trim().replace(/\(.*\)/, '').replace(/^#+\s*/, '').trim();
+        const secTitle = lines[0].trim().replace(/\(.*\)/g, '').replace(/^#+\s*/, '').trim();
         const secBody = lines.slice(1).join('\n').trim();
 
-        // セクション内部のWikiLink抽出
         const secChoices = [];
-        const secWikiRegex = /(?:^|[^\!])\[\[([^|]+?)(?:\|([^\]]+?))?\]\]/g;
-        let secMatch;
-        while ((secMatch = secWikiRegex.exec(secBody)) !== null) {
-            const rawTarget = secMatch[1].trim();
-            const rawLabel = secMatch[2] ? secMatch[2].trim() : null;
-            let action = 'move';
-            let target = rawTarget;
-            if (rawTarget.startsWith('#')) {
-                action = 'section';
-                target = rawTarget.replace(/^#+\s*/, '').trim();
-            } else {
-                target = normalizeTarget(rawTarget);
+        const secLines = secBody.split('\n');
+        secLines.forEach(line => {
+            if (/(?:^|[^\!])\[\[/.test(line)) {
+                const parsed = parseChoiceFromLine(line);
+                if (parsed.action !== 'none') {
+                    secChoices.push({
+                        ...parsed,
+                        itemImage: null,
+                        branches: []
+                    });
+                }
             }
-            secChoices.push({
-                label: rawLabel || target,
-                action: action,
-                target: target,
-                condition: null,
-                itemImage: null,
-                sfx: null,
-                branches: []
-            });
-        }
+        });
 
-        // セクション内部の --- によるページ分割
         const secPagesRaw = secBody.split(/^\s*(?:---|\*\*\*|___)\s*$/gm).map(s => s.trim()).filter(Boolean);
         const parsedSecPages = secPagesRaw.map(pText => {
-            const cleanSecBody = pText.replace(/(?:^|[^\!])\[\[([^|]+?)(?:\|([^\]]+?))?\]\]/g, '').trim();
-            return processHighlights(marked.parse(cleanSecBody), state);
+            const textWithoutChoices = pText.split('\n').filter(l => !/(?:^|[^\!])\[\[/.test(l)).join('\n').trim();
+            return parseTextToHtml(textWithoutChoices, state);
         });
 
         sections[secTitle] = {
@@ -81,100 +214,44 @@ function processContent(rawText, state) {
         };
     });
 
-    // H2以上の見出し (^##+\s+) で本編とサブ見出しブロックを切り分け
     const parts = body.split(/^##+\s+/gm);
     const imgRegex = /!\[\[(.*?)(?:\|.*?)?\]\]|!\[.*?\]\((.*?)\)/;
     const imgGlobalRegex = /!\[\[.*?\]\]|!\[.*?\]\(.*?\)/g;
 
-    // 先頭の # メインタイトル行を除去して純粋なメイン本文を取得
     let mainContentPart = parts[0].replace(/^#\s+.*$/m, '').trim();
-
-    // 水平線 (--- や ***) による自然なページ送りの分割チェック
     const pagesRaw = mainContentPart.split(/^\s*(?:---|\*\*\*|___)\s*$/gm).map(s => s.trim()).filter(Boolean);
 
-    // 本文中のWikiLink ([[...]]) を自動抽出して選択肢に変換
     const inlineChoices = [];
-    const wikiLinkRegex = /(?:^|[^\!])\[\[([^|]+?)(?:\|([^\]]+?))?\]\]/g;
-    
-    let wMatch;
-    while ((wMatch = wikiLinkRegex.exec(mainContentPart)) !== null) {
-        const rawTarget = wMatch[1].trim();
-        const rawLabel = wMatch[2] ? wMatch[2].trim() : null;
-        
-        let action = 'move';
-        let target = rawTarget;
-        if (rawTarget.startsWith('#')) {
-            action = 'section';
-            target = rawTarget.replace(/^#+\s*/, '').trim();
-        } else {
-            target = normalizeTarget(rawTarget);
+    const mainLines = mainContentPart.split('\n');
+    mainLines.forEach(line => {
+        if (/(?:^|[^\!])\[\[/.test(line)) {
+            const parsed = parseChoiceFromLine(line);
+            if (parsed.action !== 'none') {
+                inlineChoices.push({
+                    ...parsed,
+                    itemImage: null,
+                    branches: []
+                });
+            }
         }
+    });
 
-        const label = rawLabel || target;
-
-        inlineChoices.push({
-            label: label,
-            action: action,
-            target: target,
-            condition: null,
-            itemImage: null,
-            sfx: null,
-            branches: []
-        });
-    }
-
-    // 選択肢処理（### 見出しからの抽出）
     const headerChoices = [];
     parts.slice(1).forEach(block => {
         const lines = block.split('\n');
         const header = lines[0].trim();
         const rest = lines.slice(1).join('\n').trim();
 
-        const secName = header.replace(/\(.*\)/, '').replace(/^#+\s*/, '').trim();
+        const secName = header.replace(/\(.*\)/g, '').replace(/^#+\s*/, '').trim();
         if (sections[secName] && !header.includes('[[')) {
             return;
         }
 
-        let choice = { label: header, condition: null, itemImage: null, sfx: null, branches: [], action: 'none' };
-
-        const ifMatch = header.match(/\(if:(.*?)\)/);
-        if (ifMatch) { choice.condition = ifMatch[1]; choice.label = header.replace(/\(if:.*?\)/, '').trim(); }
-
-        const sfxMatch = choice.label.match(/\(sfx:(.*?)\)/);
-        if (sfxMatch) { choice.sfx = sfxMatch[1]; choice.label = choice.label.replace(/\(sfx:.*?\)/, '').trim(); }
-
-        const moveMatch = choice.label.match(/\[\[(.*?)\|(.*?)\]\]/);
-        if (moveMatch) {
-            const rawTarget = moveMatch[1].trim();
-            if (rawTarget.startsWith('#')) {
-                choice.action = 'section';
-                choice.target = rawTarget.replace(/^#+\s*/, '').trim();
-            } else {
-                choice.action = 'move';
-                choice.target = normalizeTarget(rawTarget);
-            }
-            choice.label = moveMatch[2];
-        }
-
-        const simpleMoveMatch = choice.label.match(/\[\[(.*?)\]\]/);
-        if (!moveMatch && simpleMoveMatch) {
-            const rawTarget = simpleMoveMatch[1].trim();
-            if (rawTarget.startsWith('#')) {
-                choice.action = 'section';
-                choice.target = rawTarget.replace(/^#+\s*/, '').trim();
-            } else {
-                choice.action = 'move';
-                choice.target = normalizeTarget(simpleMoveMatch[1]);
-            }
-            choice.label = choice.target;
-        }
-
-        const eventMatch = choice.label.match(/\((.*?):(.*?)\|(.*?)\)/);
-        if (eventMatch) { choice.action = eventMatch[1]; choice.id = eventMatch[2]; choice.label = eventMatch[3]; }
-
+        const parsedHeader = parseChoiceFromLine(header);
         const itemImgMatch = rest.match(imgRegex);
-        if (itemImgMatch) choice.itemImage = itemImgMatch[1] || itemImgMatch[2];
+        const itemImage = itemImgMatch ? (itemImgMatch[1] || itemImgMatch[2]) : null;
 
+        const branches = [];
         const cleanRest = rest.replace(imgGlobalRegex, '').trim();
         if (cleanRest.includes('@')) {
             const bParts = cleanRest.split(/^@\s+/gm);
@@ -186,9 +263,9 @@ function processContent(rawText, state) {
                     if (l.trim().startsWith('+')) effects.push(l.trim().substring(1).trim());
                     else cleanLines.push(l);
                 });
-                choice.branches.push({
+                branches.push({
                     condition: bLines[0].trim(),
-                    text: processHighlights(marked.parse((commonClean ? commonClean + '\n\n' : '') + cleanLines.join('\n').trim()), state),
+                    text: parseTextToHtml((commonClean ? commonClean + '\n\n' : '') + cleanLines.join('\n').trim(), state),
                     effects: effects
                 });
             });
@@ -198,15 +275,15 @@ function processContent(rawText, state) {
                 if (l.trim().startsWith('+')) effects.push(l.trim().substring(1).trim());
                 else cleanLines.push(l);
             });
-            choice.branches.push({ condition: null, text: processHighlights(marked.parse(cleanLines.join('\n').trim()), state), effects: effects });
+            branches.push({ condition: null, text: parseTextToHtml(cleanRest, state), effects: effects });
         }
-        
+
+        let choice = { ...parsedHeader, itemImage, branches };
         if (choice.action !== 'none') {
             headerChoices.push(choice);
         }
     });
 
-    // 重複選択肢のデデュープ
     const choicesMap = new Map();
     [...inlineChoices, ...headerChoices].forEach(c => {
         const key = `${c.action}:${c.target}:${c.label}`;
@@ -216,13 +293,12 @@ function processContent(rawText, state) {
     });
     const choices = Array.from(choicesMap.values());
 
-    // ページのビルド処理
     const parsedPages = pagesRaw.map((pageText) => {
-        const cleanedPageText = pageText.replace(/(?:^|[^\!])\[\[([^|]+?)(?:\|([^\]]+?))?\]\]/g, '').trim();
+        const textWithoutChoices = pageText.split('\n').filter(l => !/(?:^|[^\!])\[\[/.test(l)).join('\n').trim();
         
         let pageBranches = [];
-        if (cleanedPageText.includes('@')) {
-            const bParts = cleanedPageText.split(/^@\s+/gm);
+        if (textWithoutChoices.includes('@')) {
+            const bParts = textWithoutChoices.split(/^@\s+/gm);
             const commonTextRaw = bParts[0].trim();
             const commonImgMatch = commonTextRaw.match(imgRegex);
             const commonImg = commonImgMatch ? (commonImgMatch[1] || commonImgMatch[2]) : null;
@@ -234,19 +310,19 @@ function processContent(rawText, state) {
                 const bRest = bLines.slice(1).join('\n').trim();
                 const bImgMatch = bRest.match(imgRegex);
                 const bRestClean = bRest.replace(imgGlobalRegex, '').trim();
-                let html = marked.parse((commonTextClean ? commonTextClean + '\n\n' : '') + bRestClean);
+                let html = parseTextToHtml((commonTextClean ? commonTextClean + '\n\n' : '') + bRestClean, state);
                 pageBranches.push({
                     condition: bCond,
-                    text: processHighlights(html, state),
+                    text: html,
                     image: (bImgMatch ? (bImgMatch[1] || bImgMatch[2]) : null) || commonImg
                 });
             });
         } else {
-            const imgMatch = cleanedPageText.match(imgRegex);
-            const clean = cleanedPageText.replace(imgGlobalRegex, '').trim();
+            const imgMatch = textWithoutChoices.match(imgRegex);
+            const clean = textWithoutChoices.replace(imgGlobalRegex, '').trim();
             pageBranches.push({
                 condition: null,
-                text: processHighlights(marked.parse(clean), state),
+                text: parseTextToHtml(clean, state),
                 image: imgMatch ? (imgMatch[1] || imgMatch[2]) : null
             });
         }
@@ -264,32 +340,19 @@ function processContent(rawText, state) {
     };
 }
 
-function processHighlights(html, state) {
-    return html.replace(/==([^|]+)\|([^=]+)==/g, (match, cond, txt) => {
-        const isUnlocked = state.check(cond);
-        return `<span class="${isUnlocked ? 'unlocked' : 'blurred'}" title="${isUnlocked ? '' : '記憶が不足しています'}">${txt}</span>`;
-    });
-}
-
-/**
- * 抽象ドライバークラス
- */
 class BaseDriver {
     async getFile(path) { throw "Not implemented"; }
     async listMarkdownFiles() { return []; }
     resolveAsset(path) { return path; }
 }
 
-/**
- * ローカルフォルダ読み込み用 (File System Access API)
- */
-export class LocalDriver extends BaseDriver {
+export class DirectoryHandleDriver extends BaseDriver {
     constructor(handle) {
         super();
         this.handle = handle;
     }
-    async getFile(filePath) {
-        const parts = filePath.split('/');
+    async getFile(path) {
+        const parts = path.split('/');
         let current = this.handle;
         for (let i = 0; i < parts.length - 1; i++) {
             current = await current.getDirectoryHandle(parts[i]);
@@ -328,9 +391,8 @@ export class LocalDriver extends BaseDriver {
     }
 }
 
-/**
- * リモート/HTTP用ドライバー
- */
+export class LocalDriver extends DirectoryHandleDriver {}
+
 export class HttpDriver extends BaseDriver {
     constructor(baseUrl) {
         super();
@@ -368,102 +430,77 @@ export class DataLoader {
         this.state = state;
     }
 
-    async getFileWithFallback(targetName) {
-        const cleanName = targetName.replace(/^data\//, '');
-        const candidates = [cleanName, `data/${cleanName}`];
+    async loadMasterData() {
+        try {
+            const text = await this.driver.getFile('master.md');
+            const allObjects = [];
+            const allMemories = [];
 
-        let lastErr = null;
-        for (const path of candidates) {
-            try {
-                return await this.driver.getFile(path);
-            } catch (e) {
-                lastErr = e;
-            }
+            let currentSection = null;
+            text.split('\n').forEach(line => {
+                line = line.trim();
+                if (line.startsWith('## Objects')) {
+                    currentSection = 'objects';
+                } else if (line.startsWith('## Memories')) {
+                    currentSection = 'memories';
+                } else if (line.startsWith('- ')) {
+                    const itemStr = line.substring(2).trim();
+                    const colonIdx = itemStr.lastIndexOf(':');
+                    if (colonIdx !== -1) {
+                        let rawKey = itemStr.substring(0, colonIdx).trim();
+                        const label = itemStr.substring(colonIdx + 1).trim();
+                        
+                        // プレフィックス (memory: や item:) を綺麗に除去して正規化キーにする
+                        const cleanKey = rawKey.replace(/^(memory|item):/, '').trim();
+                        
+                        if (currentSection === 'objects') allObjects.push({ key: cleanKey, label });
+                        if (currentSection === 'memories') allMemories.push({ key: cleanKey, label });
+                    }
+                }
+            });
+
+            return { allObjects, allMemories };
+        } catch (e) {
+            console.warn("Master index (master.md) load failed", e);
+            return { allObjects: [], allMemories: [] };
         }
-        throw lastErr || new Error(`File not found: ${targetName}`);
+    }
+
+    async loadMasterIndex() {
+        return this.loadMasterData();
     }
 
     async getInitialSceneId() {
-        const master = await this.loadMasterData();
-        if (master && master.startScene) {
-            return master.startScene;
+        return this.findStartSceneId();
+    }
+
+    async findStartSceneId() {
+        const mdFiles = await this.driver.listMarkdownFiles();
+        for (const file of mdFiles) {
+            try {
+                const text = await this.driver.getFile(file);
+                if (text.match(/start:\s*true/i) || text.match(/initial:\s*true/i)) {
+                    return file.replace(/\.md$/i, '');
+                }
+            } catch (e) {}
         }
-
-        const files = await this.driver.listMarkdownFiles();
-        const validFiles = files
-            .filter(f => f.toLowerCase() !== 'master.md' && f.toLowerCase() !== 'readme.md')
-            .map(f => normalizeTarget(f));
-
-        if (validFiles.length > 0) {
-            for (const sceneId of validFiles) {
-                try {
-                    const scene = await this.loadScene(sceneId);
-                    if (scene && scene.isStart) return sceneId;
-                } catch (e) {}
-            }
-            return validFiles[0];
-        }
-
-        return 'entrance';
+        return mdFiles.length > 0 ? mdFiles[0].replace(/\.md$/i, '') : 'entrance';
     }
 
     async loadScene(sceneId) {
-        try {
-            const raw = await this.getFileWithFallback(`${sceneId}.md`);
-            if (!raw) return null;
+        const path = `${sceneId}.md`;
+        const text = await this.driver.getFile(path);
+        const scene = processContent(text, this.state);
+        scene.id = sceneId;
 
-            const scene = processContent(raw, this.state);
-            if (!scene) return null;
-
-            if (scene.image) scene.image = await this.driver.resolveAsset(scene.image);
-            if (scene.bgm) scene.bgm = await this.driver.resolveAsset(`assets/audio/${scene.bgm}`);
-
-            if (Array.isArray(scene.pages)) {
-                for (const pageBranches of scene.pages) {
-                    if (Array.isArray(pageBranches)) {
-                        for (const b of pageBranches) {
-                            if (b && b.image) b.image = await this.driver.resolveAsset(b.image);
-                        }
-                    }
-                }
-            }
-            if (Array.isArray(scene.choices)) {
-                for (const choice of scene.choices) {
-                    if (choice) {
-                        if (choice.itemImage) choice.itemImage = await this.driver.resolveAsset(choice.itemImage);
-                        if (choice.sfx) choice.sfx = await this.driver.resolveAsset(`assets/audio/${choice.sfx}`);
-                    }
-                }
-            }
-            return scene;
-        } catch (e) {
-            console.warn(`Failed to load scene "${sceneId}":`, e);
-            return null;
+        if (scene.image) scene.image = await this.driver.resolveAsset(scene.image);
+        if (scene.bgm) scene.bgm = await this.driver.resolveAsset(`assets/audio/${scene.bgm}`);
+        
+        for (const choice of scene.choices) {
+            if (choice.itemImage) choice.itemImage = await this.driver.resolveAsset(choice.itemImage);
+            if (choice.sfx) choice.sfx = await this.driver.resolveAsset(`assets/audio/${choice.sfx}`);
         }
-    }
 
-    async loadMasterData() {
-        try {
-            const text = await this.getFileWithFallback('master.md');
-            const data = { allObjects: [], allMemories: [], startScene: null };
-            let category = null;
-            text.split('\n').forEach(line => {
-                const t = line.trim();
-                const startMatch = t.match(/^start(?:_scene)?:\s*(.*)$/i);
-                if (startMatch) {
-                    data.startScene = normalizeTarget(startMatch[1]);
-                }
-                if (t.startsWith('# Objects') || t.startsWith('## Objects')) category = 'allObjects';
-                else if (t.startsWith('# Memories') || t.startsWith('## Memories')) category = 'allMemories';
-                else if (t.startsWith('-') && category) {
-                    const m = t.match(/^-\s*(.*?):\s*(.*)$/);
-                    if (m) data[category].push({ id: m[1].trim(), label: m[2].trim() });
-                }
-            });
-            return data;
-        } catch (e) {
-            console.warn("master.md load skipped/not found:", e);
-            return { allObjects: [], allMemories: [], startScene: null };
-        }
+        return scene;
     }
 }

@@ -1,41 +1,71 @@
 {
   "nodes": [
     {
-      "id": "entrance",
+      "id": "entrance#靴",
       "type": "text",
-      "text": "### 📄 [[entrance.md|玄関]]\n`entrance.md`\n\n雨の音が静かに格子戸を打っている。\n引き戸を開けると、湿った木の匂いと古い土間の冷気が漂ってきた。\n\n@ memory:shoes\n土間に残...",
+      "text": "#### 🔖 ## 靴\n\n> [!memory] shoes > 土間に一足の使い古された革靴が残されている。かかとが擦り減っ...",
       "x": 0,
       "y": 0,
-      "width": 340,
-      "height": 220,
-      "color": "1"
-    },
-    {
-      "id": "entrance#[[living|居間へ入る]]",
-      "type": "text",
-      "text": "#### 🔖 ## [[living|居間へ入る]]\n\n",
-      "x": 0,
-      "y": 280,
       "width": 280,
       "height": 160,
       "color": "4"
     },
     {
-      "id": "garden",
+      "id": "entrance#下駄箱",
       "type": "text",
-      "text": "### 📄 [[garden.md|庭]]\n`garden.md`\n\n雨に濡れた苔と青々とした木々が広がる日本庭園。\n雨粒が葉を叩く音が心地よく響いている。",
+      "text": "#### 🔖 ## 下駄箱\n\n> [!item] brass_key > 下駄箱の隅にある小さな引き出しを開けると、奥から古びた真...",
       "x": 0,
-      "y": 500,
-      "width": 340,
-      "height": 220,
-      "color": "1"
+      "y": 220,
+      "width": 280,
+      "height": 160,
+      "color": "4"
     },
     {
-      "id": "garden#[[living|居間に戻る]]",
+      "id": "living#仏壇",
       "type": "text",
-      "text": "#### 🔖 ## [[living|居間に戻る]]\n\n",
-      "x": 0,
-      "y": 780,
+      "text": "#### 🔖 ## 仏壇\n\n> [!memory] incense > 仏壇の前に立つと、静けさがより一層深まる。線香立てには最...",
+      "x": 560,
+      "y": 0,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "living#箪笥調べる",
+      "type": "text",
+      "text": "#### 🔖 ## 箪笥調べる\n\n古い桐の箪笥には小さな鍵穴がついている。 固く閉ざされており、開けるには専用の鍵が必要なようだ。",
+      "x": 560,
+      "y": 220,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "living#箪笥開ける",
+      "type": "text",
+      "text": "#### 🔖 ## 箪笥開ける\n\n> [!item] old_journal > 真鍮の鍵を挿し込むと、カチャリと音がして引き出しが開...",
+      "x": 560,
+      "y": 440,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "garden#石碑",
+      "type": "text",
+      "text": "#### 🔖 ## 石碑\n\n> [!memory] garden_secret > 庭の奥、古い椿の木の根元に佇む石碑には「19...",
+      "x": 1120,
+      "y": 0,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "garden#台座",
+      "type": "text",
+      "text": "#### 🔖 ## 台座\n\n> [!item] wooden_box > お地蔵様の台座の隙間に、油紙で厳重に包まれた小さな桐の...",
+      "x": 1120,
+      "y": 220,
       "width": 280,
       "height": 160,
       "color": "4"
@@ -43,33 +73,282 @@
     {
       "id": "living",
       "type": "text",
-      "text": "### 📄 [[living.md|居間]]\n`living.md`\n\n広々とした和室。薄暗い部屋の奥には立派な仏壇が鎮座している。\n畳からはかすかに線香の香りが残っている。",
-      "x": 0,
-      "y": 1000,
+      "text": "### 📄 [[living.md|居間]]\n`living.md`\n\n!\n\n広々とした和室。薄暗い部屋の奥には立派な仏壇が鎮座している。\n畳からはかすかに線香の香りが残っている。\n\n==#journal_con...",
+      "x": 1120,
+      "y": 440,
       "width": 340,
       "height": 220,
       "color": "1"
     },
     {
-      "id": "living#[[entrance|玄関に戻る]]",
+      "id": "study#文机",
       "type": "text",
-      "text": "#### 🔖 ## [[entrance|玄関に戻る]]\n\n",
-      "x": 0,
-      "y": 1280,
+      "text": "#### 🔖 ## 文机\n\n使い込まれた文机の上には、万年筆とインク瓶が静かに置かれている。",
+      "x": 1120,
+      "y": 720,
       "width": 280,
       "height": 160,
       "color": "4"
     },
     {
-      "id": "living#[[garden|庭を眺める]]",
+      "id": "study#日記読む",
       "type": "text",
-      "text": "#### 🔖 ## [[garden|庭を眺める]]\n\n",
-      "x": 0,
-      "y": 1500,
+      "text": "#### 🔖 ## 日記読む\n\n居間の箪笥で見つけた日記帳を開く。 そこには離れ離れになった大切な人物への思いが綴られているが、鍵と...",
+      "x": 1120,
+      "y": 940,
       "width": 280,
       "height": 160,
       "color": "4"
+    },
+    {
+      "id": "study#小箱解読",
+      "type": "text",
+      "text": "#### 🔖 ## 小箱解読\n\n> [!item] taiwan_letter > 日記の手順に従って小箱を開けると、中から1947...",
+      "x": 1120,
+      "y": 1160,
+      "width": 280,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "entrance",
+      "type": "text",
+      "text": "### 📄 [[entrance.md|玄関]]\n`entrance.md`\n\n!\n\n雨の音が静かに格子戸を打っている。\n引き戸を開けると、湿った木の匂いと古い土間の冷気が漂ってきた。\n\n> 「静かな雨の日だ……土間の空...",
+      "x": 1680,
+      "y": 0,
+      "width": 340,
+      "height": 220,
+      "color": "1"
+    },
+    {
+      "id": "garden",
+      "type": "text",
+      "text": "### 📄 [[garden.md|庭]]\n`garden.md`\n\n!\n\n雨に濡れた苔と青々とした木々が広がる日本庭園。\n雨粒が葉を叩く音が心地よく響いている。\n\n==#garden_secret 石碑の文字...",
+      "x": 1680,
+      "y": 280,
+      "width": 340,
+      "height": 220,
+      "color": "1"
+    },
+    {
+      "id": "study",
+      "type": "text",
+      "text": "### 📄 [[study.md|書斎]]\n`study.md`\n\n!\n\n祖父が生前、長い時間を過ごしたとされる静かな書斎。\n壁一面の本棚には古い書籍が並び、大きな文机の上には雨の雫が映る窓からの光が落ちてい...",
+      "x": 1680,
+      "y": 560,
+      "width": 340,
+      "height": 220,
+      "color": "1"
     }
   ],
-  "edges": []
+  "edges": [
+    {
+      "id": "edge-1",
+      "fromNode": "entrance",
+      "fromSide": "right",
+      "toNode": "living",
+      "toSide": "left",
+      "label": "居間へ入る"
+    },
+    {
+      "id": "edge-2",
+      "fromNode": "entrance",
+      "fromSide": "right",
+      "toNode": "entrance#靴",
+      "toSide": "left",
+      "label": "土間の靴を見る"
+    },
+    {
+      "id": "edge-3",
+      "fromNode": "entrance",
+      "fromSide": "right",
+      "toNode": "entrance#下駄箱",
+      "toSide": "left",
+      "label": "下駄箱の引き出しを開ける"
+    },
+    {
+      "id": "edge-4",
+      "fromNode": "entrance#靴",
+      "fromSide": "right",
+      "toNode": "entrance",
+      "toSide": "left",
+      "label": "玄関に戻る"
+    },
+    {
+      "id": "edge-5",
+      "fromNode": "entrance#下駄箱",
+      "fromSide": "right",
+      "toNode": "entrance",
+      "toSide": "left",
+      "label": "玄関に戻る"
+    },
+    {
+      "id": "edge-6",
+      "fromNode": "garden",
+      "fromSide": "right",
+      "toNode": "living",
+      "toSide": "left",
+      "label": "居間に戻る"
+    },
+    {
+      "id": "edge-7",
+      "fromNode": "garden",
+      "fromSide": "right",
+      "toNode": "garden#石碑",
+      "toSide": "left",
+      "label": "庭の隅の石碑を見る"
+    },
+    {
+      "id": "edge-8",
+      "fromNode": "garden",
+      "fromSide": "right",
+      "toNode": "garden#台座",
+      "toSide": "left",
+      "label": "お地蔵様の台座の根元を調べる"
+    },
+    {
+      "id": "edge-9",
+      "fromNode": "garden#石碑",
+      "fromSide": "right",
+      "toNode": "garden",
+      "toSide": "left",
+      "label": "庭に戻る"
+    },
+    {
+      "id": "edge-10",
+      "fromNode": "garden#台座",
+      "fromSide": "right",
+      "toNode": "garden",
+      "toSide": "left",
+      "label": "庭に戻る"
+    },
+    {
+      "id": "edge-11",
+      "fromNode": "living",
+      "fromSide": "right",
+      "toNode": "entrance",
+      "toSide": "left",
+      "label": "玄関に戻る"
+    },
+    {
+      "id": "edge-12",
+      "fromNode": "living",
+      "fromSide": "right",
+      "toNode": "garden",
+      "toSide": "left",
+      "label": "庭を眺める"
+    },
+    {
+      "id": "edge-13",
+      "fromNode": "living",
+      "fromSide": "right",
+      "toNode": "study",
+      "toSide": "left",
+      "label": "奥の書斎へ入る"
+    },
+    {
+      "id": "edge-14",
+      "fromNode": "living",
+      "fromSide": "right",
+      "toNode": "living#仏壇",
+      "toSide": "left",
+      "label": "仏壇を詳しく調べる"
+    },
+    {
+      "id": "edge-15",
+      "fromNode": "living",
+      "fromSide": "right",
+      "toNode": "living#箪笥調べる",
+      "toSide": "left",
+      "label": "部屋の隅の小さな箪笥を試す"
+    },
+    {
+      "id": "edge-16",
+      "fromNode": "living",
+      "fromSide": "right",
+      "toNode": "living#箪笥開ける",
+      "toSide": "left",
+      "label": "真鍮の鍵で箪笥を開ける"
+    },
+    {
+      "id": "edge-17",
+      "fromNode": "living#仏壇",
+      "fromSide": "right",
+      "toNode": "living",
+      "toSide": "left",
+      "label": "居間に戻る"
+    },
+    {
+      "id": "edge-18",
+      "fromNode": "living#箪笥調べる",
+      "fromSide": "right",
+      "toNode": "living",
+      "toSide": "left",
+      "label": "居間に戻る"
+    },
+    {
+      "id": "edge-19",
+      "fromNode": "living#箪笥開ける",
+      "fromSide": "right",
+      "toNode": "living",
+      "toSide": "left",
+      "label": "居間に戻る"
+    },
+    {
+      "id": "edge-20",
+      "fromNode": "study",
+      "fromSide": "right",
+      "toNode": "living",
+      "toSide": "left",
+      "label": "居間に戻る"
+    },
+    {
+      "id": "edge-21",
+      "fromNode": "study",
+      "fromSide": "right",
+      "toNode": "study#文机",
+      "toSide": "left",
+      "label": "文机の上を調べる"
+    },
+    {
+      "id": "edge-22",
+      "fromNode": "study",
+      "fromSide": "right",
+      "toNode": "study#日記読む",
+      "toSide": "left",
+      "label": "机の上で日記帳を開く"
+    },
+    {
+      "id": "edge-23",
+      "fromNode": "study",
+      "fromSide": "right",
+      "toNode": "study#小箱解読",
+      "toSide": "left",
+      "label": "日記と桐の小箱を組み合わせる"
+    },
+    {
+      "id": "edge-24",
+      "fromNode": "study#文机",
+      "fromSide": "right",
+      "toNode": "study",
+      "toSide": "left",
+      "label": "書斎に戻る"
+    },
+    {
+      "id": "edge-25",
+      "fromNode": "study#日記読む",
+      "fromSide": "right",
+      "toNode": "study",
+      "toSide": "left",
+      "label": "書斎に戻る"
+    },
+    {
+      "id": "edge-26",
+      "fromNode": "study#小箱解読",
+      "fromSide": "right",
+      "toNode": "entrance",
+      "toSide": "left",
+      "label": "最初からもう一度調べる"
+    }
+  ]
 }
