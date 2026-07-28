@@ -1,5 +1,5 @@
 /**
- * 8bit レトロ音響管理エンジン (Web Audio API 合成音響 & 外部BGM/SE ＋ エラー自動フォールバック)
+ * 8bit レトロ音響管理エンジン (Web Audio API 合成音響 & 外部BGM/SE ＋ 未解放時自動キュースタート)
  */
 export class AudioManager {
     constructor() {
@@ -8,6 +8,9 @@ export class AudioManager {
         this.seVolume = 0.8;
         this.isUnlocked = false;
         this.statusEl = null;
+
+        // 保留中（未タップ時）の BGM 要求
+        this.pendingBgmSrc = null;
 
         // HTML5 Audio 用 BGM インスタンス
         this.currentBgmAudio = null;
@@ -21,16 +24,21 @@ export class AudioManager {
     }
 
     setupAutoUnlock() {
-        const unlockHandler = () => {
-            this.unlock();
+        const unlockHandler = async () => {
+            const unlocked = await this.unlock();
+            if (unlocked && this.pendingBgmSrc) {
+                const bgmToPlay = this.pendingBgmSrc;
+                this.pendingBgmSrc = null;
+                this.playBgm(bgmToPlay);
+            }
         };
-        // ユーザーインタラクションイベントで同期的かつ確実にAudioContextを活性化
+
         ['click', 'pointerdown', 'keydown', 'touchstart', 'touchend'].forEach(evt => {
-            window.addEventListener(evt, unlockHandler, { capture: true, passive: true });
+            window.addEventListener(evt, unlockHandler, { capture: true });
         });
     }
 
-    initCtx() {
+    async initCtx() {
         if (!this.ctx) {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
             if (AudioCtx) {
@@ -38,23 +46,15 @@ export class AudioManager {
             }
         }
         if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume();
-        }
-        if (this.ctx) {
-            // ブロック解除を確実にするため同期的に超短時間のダミー音を再生
             try {
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(0);
-                osc.stop(this.ctx.currentTime + 0.001);
+                await this.ctx.resume();
             } catch (e) {}
-
+        }
+        if (this.ctx && this.ctx.state === 'running') {
             this.isUnlocked = true;
             this.updateStatus("有効 (ON)", "var(--text-green)");
         }
+        return this.isUnlocked;
     }
 
     updateStatus(msg, color = "#aaa") {
@@ -65,15 +65,30 @@ export class AudioManager {
         }
     }
 
-    unlock() {
-        this.initCtx();
+    async unlock() {
+        await this.initCtx();
+        if (this.ctx && this.ctx.state === 'running') {
+            // ダミー音を発音してブラウザ解凍を確定
+            try {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(0);
+                osc.stop(this.ctx.currentTime + 0.001);
+            } catch (e) {}
+        }
         return this.isUnlocked;
     }
 
-    /* --- 8bit ビープ音合成機能 (しっかり聴こえるチューニング) --- */
-    playBeep(freq, duration = 0.06, type = 'square', startGain = 0.2) {
-        this.initCtx();
-        if (!this.ctx) return;
+    /* --- 8bit ビープ音合成機能 --- */
+    async playBeep(freq, duration = 0.06, type = 'square', startGain = 0.2) {
+        if (!this.ctx || this.ctx.state !== 'running') {
+            await this.initCtx();
+        }
+        if (!this.ctx || this.ctx.state !== 'running') return;
+
         try {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
@@ -104,7 +119,7 @@ export class AudioManager {
 
     // 選択肢移動・ホバー音 (ピコッ)
     playSelectSound() {
-        this.playBeep(987.77, 0.05, 'square', 0.15); // B5
+        this.playBeep(987.77, 0.05, 'square', 0.15);
     }
 
     // 決定音 (ファンファーレ ピロリーン)
@@ -117,16 +132,23 @@ export class AudioManager {
     /* --- 外部 BGM ＆ 合成アンビエント BGM 管理 --- */
     async playBgm(src) {
         if (!src) return;
-        this.unlock();
+        this.pendingBgmSrc = src;
 
-        if (this.currentBgmSrc === src && this.currentBgmAudio && !this.currentBgmAudio.paused) {
+        const unlocked = await this.initCtx();
+        if (!unlocked || !this.ctx || this.ctx.state !== 'running') {
+            console.log(`[8bit Audio] BGM playback queued for user interaction: ${src}`);
+            return;
+        }
+
+        if (this.currentBgmSrc === src && ((this.currentBgmAudio && !this.currentBgmAudio.paused) || this.synthBgmNodes)) {
             return;
         }
 
         this.stopBgm();
         this.currentBgmSrc = src;
+        this.pendingBgmSrc = null;
 
-        // 1. 外部 mp3/wav ファイルの読み込み・再生
+        // 1. 外部 mp3/wav ファイルの読み込み・再生を試みる
         const audio = new Audio();
         audio.loop = true;
         audio.volume = this.bgmVolume;
@@ -135,15 +157,13 @@ export class AudioManager {
 
         this.currentBgmAudio = audio;
 
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                console.log(`[8bit Audio] File BGM playing: ${src}`);
-            }).catch(err => {
-                console.warn(`[8bit Audio] External BGM load failed (${src}), starting 8bit Synth Ambient...`, err);
-                // 2. 外部ファイルが存在しない・404等の場合は8bit合成アンビエントBGMを鳴らす
-                this.startSynthAmbientBgm(src);
-            });
+        try {
+            await audio.play();
+            console.log(`[8bit Audio] File BGM playing: ${src}`);
+        } catch (err) {
+            console.warn(`[8bit Audio] External BGM load/autoplay failed (${src}), starting 8bit Synth Ambient...`, err);
+            // 2. 外部ファイルが存在しない (404) またはブラウザで制限された場合は8bit合成アンビエントBGMを始動！
+            await this.startSynthAmbientBgm(src);
         }
     }
 
@@ -159,11 +179,14 @@ export class AudioManager {
         this.currentBgmSrc = null;
     }
 
-    /* --- Web Audio API 8bit レトロ合成アンビエント BGM --- */
-    startSynthAmbientBgm(seedTag = '') {
+    /* --- Web Audio API 8bit レトロ合成アンビエント BGM (完全非同期ガード付き) --- */
+    async startSynthAmbientBgm(seedTag = '') {
         this.stopSynthAmbientBgm();
-        this.initCtx();
-        if (!this.ctx) return;
+        const unlocked = await this.initCtx();
+        if (!unlocked || !this.ctx || this.ctx.state !== 'running') {
+            console.warn("[8bit Audio] Cannot start synth BGM while AudioContext is suspended.");
+            return;
+        }
 
         try {
             const now = this.ctx.currentTime;
@@ -221,7 +244,7 @@ export class AudioManager {
     }
 
     async playSe(src) {
-        this.unlock();
+        await this.initCtx();
         if (src) {
             const seAudio = new Audio(src);
             seAudio.volume = this.seVolume;
